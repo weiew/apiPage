@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import main from '@/components/main'
+import mainWrap from '@/components/mainWrap'
 import login from '@/components/login'
 import api from '@/components/api'
 
@@ -10,8 +10,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'main',
-      component: main
+      name: 'mainWrap',
+      component: mainWrap
     },
     {
       path: '/login',
@@ -20,11 +20,10 @@ export default new Router({
     },
     {
       path: '/',
-      hidden: true,
-      component: main,
+      component: mainWrap,
       children: [
-        { path: '/api/:id',component: api, name: '接口' }
+        { path: '/api/:id', component: api, name: '接口' }
       ]
-    },
+    }
   ]
 })

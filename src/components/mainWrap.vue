@@ -1,11 +1,9 @@
 <template>
-  <el-container id="middleContainer">
+  <el-container id="mainWrapContainer">
     <el-aside width="210px">
       <el-menu
         default-active="2"
         class="el-aside-menu"
-        @open="handleOpen"
-        @close="handleClose"
         :router="true"
         background-color="#545c64"
         text-color="#fff"
@@ -26,10 +24,8 @@
     <el-container>
       <el-header>
         <el-menu
-          :default-active="activeIndex2"
           class="el-header-menu"
           mode="horizontal"
-          @select="handleSelect"
           background-color="#545c64"
           text-color="#fff"
           active-text-color="#ffd04b">
@@ -43,33 +39,38 @@
       <section class="content-container">
         <div class="grid-content bg-purple-light">
           <el-col :span="24" class="content-wrapper">
-            <transition name="fade" mode="out-in" >
+            <transition name="fade" id="middleContainer" mode="out-in" >
               <router-view></router-view>
             </transition>
           </el-col>
         </div>
       </section>
-      <el-footer>Footer</el-footer>
+      <el-footer>
+        <p>Footer</p>
+      </el-footer>
     </el-container>
   </el-container>
 </template>
 <script>
-  export default {
-    name: 'mainWrap',
-    data () {
-      return {
-        msg: 'Welcome to Your Vue.js App'
-      }
+export default {
+  name: 'mainWrap',
+  data () {
+    return {
+      msg: 'Welcome to Your Vue.js App'
     }
   }
+}
 </script>
 
 <style lang="scss" type="text/scss">
-  #middleContainer{
+  #mainWrapContainer{
     position: absolute;
     top: 0px;
     bottom: 0px;
     width: 100%;
+  }
+  #middleContainer{
+    padding-bottom: 60px;
   }
   .el-header {
     color: #333;
@@ -116,5 +117,12 @@
 
   .el-container:nth-child(7) .el-aside {
     line-height: 320px;
+  }
+  .el-footer{
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    padding: 0;
+    background: #f1f1f1;
   }
 </style>
