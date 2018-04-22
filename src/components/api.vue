@@ -1,6 +1,5 @@
 <template>
   <div class="optionsWrap">
-    <el-button @click="handleAddTop">添加顶级节点</el-button>
     <div class="optionsHead">
       <p style="width: 260px;">字段</p>
       <p style="width: 30px;">类型</p>
@@ -21,6 +20,7 @@
              :render-content="renderContent"
              :default-optionsWraped-keys="defaultoptionsWrapKeys"
              @node-click="handleNodeClick"></el-tree>
+    <el-button @click="handleAddTop">添加顶级节点</el-button>
   </div>
 </template>
 
@@ -35,13 +35,15 @@ const apiData =  {
     codeType:"S",
     codeNeed:"Y",
     codeTips:"状态码",
+    hasCodeValue:false,
     lastEditTime:'2018-03-12 12:23',
     isEdit: false,
     children: [{
       id: 2,
       codeName:"media",
       codeExample:"100",
-      codeType:"S",
+      codeType:"B",
+      hasCodeValue:true,
       codeValue:[
         {code:"pc",value:"电脑端"},
         {code:"mobile",value:"移动端"},
@@ -55,6 +57,7 @@ const apiData =  {
       codeName:"userType",
       codeExample:"100",
       codeType:"S",
+      hasCodeValue:true,
       codeValue:[
         {code:"admin",value:"管理员"},
         {code:"test",value:"测试"},
@@ -68,6 +71,7 @@ const apiData =  {
       codeName:"cityCode",
       codeExample:"100",
       codeType:"S",
+      hasCodeValue:true,
       codeValue:[
         {code:"1",value:"北京市"},
         {code:"2",value:"深圳市"},
@@ -83,13 +87,15 @@ const apiData =  {
     codeExample:"100",
     codeType:"S",
     codeTips:"状态码",
+    hasCodeValue:false,
     lastEditTime:'2018-03-12 12:23',
-    isEdit: false,
+    isEdit: true,
     children: [{
       id: 6,
       codeName:"returnCode",
       codeExample:"100",
       codeType:"S",
+      hasCodeValue:true,
       codeValue:[
         {code:"1",value:"选项1"},
         {code:"2",value:"选项2"},
@@ -103,6 +109,7 @@ const apiData =  {
       codeName:"returnCode",
       codeExample:"100",
       codeType:"S",
+      hasCodeValue:true,
       codeValue:[
         {code:"1",value:"选项1"},
         {code:"2",value:"选项2"},
@@ -116,6 +123,7 @@ const apiData =  {
       codeName:"returnCode",
       codeExample:"100",
       codeType:"S",
+      hasCodeValue:true,
       codeValue:[
         {code:"1",value:"选项1"},
         {code:"2",value:"选项2"},
@@ -131,6 +139,7 @@ export default {
   name: 'api',
   data(){
     return{
+
       maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id
       non_maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id(不更改)
       isLoadingTree: false,//是否加载节点树
@@ -146,6 +155,9 @@ export default {
     this.initoptionsWrap()
   },
   methods: {
+    codemirrorChange:function(){
+
+    },
     initoptionsWrap(){
       this.setTree.map((a) => {
         this.defaultoptionsWrapKeys.push(a.id)
@@ -250,12 +262,10 @@ export default {
   .optionsWrap{
     width:100%;
     height:100%;
-    overflow:hidden;
   }
   .optionsTree{
     height:85%;
     margin:0px auto 20px;
-    overflow-y:auto;
   }
   .optionsTree.el-tree-node.is-current>.el-tree-node__content{
     background: #ccc !important;

@@ -3,7 +3,6 @@ import Router from 'vue-router'
 import mainWrap from '@/components/mainWrap'
 import login from '@/components/login'
 import api from '@/components/api'
-
 Vue.use(Router)
 
 export default new Router({
