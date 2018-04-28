@@ -68,7 +68,7 @@
 
         </el-checkbox>
       </span>
-      <span class="codeValueEditList" v-for="item in DATA.codeValue">
+      <span class="codeValueEditList" v-for="item,key in DATA.codeValue">
         <el-input class="codeValue_code" size="mini"
                   @click.stop.native="nodeEditFocus"
                   @blur.stop="nodeEditPass(STORE,DATA,NODE)"
@@ -80,9 +80,10 @@
                   @blur.stop="nodeEditPass(STORE,DATA,NODE)"
                   @keyup.enter.stop.native="nodeEditPass(STORE,DATA,NODE)"
                   v-model="item.value"></el-input>
-			  <i class="el-icon-delete" @click.stop="codeValueDelete(STORE,DATA,NODE)"></i>
-			  <i class="el-icon-plus" @click.stop="codeValueAdd(STORE,DATA,NODE)"></i>
+			  <i class="el-icon-delete" @click.stop="codeValueDelete(STORE,DATA,NODE,key)"></i>
+			  <i class="el-icon-plus" @click.stop="codeValueAdd(STORE,DATA,NODE,key)"></i>
       </span>
+      <span v-if="DATA.codeValue.length<=0"><i class="el-icon-plus" @click.stop="codeValueAdd(STORE,DATA,NODE)"></i></span>
     </span>
 
     <span class="codeTips" v-show="!DATA.isEdit">{{DATA.codeTips}}</span>
@@ -159,10 +160,16 @@
 			nodeEditFocus(){
 				//阻止点击节点的事件冒泡
 			},
-      codeValueAdd(){
+      codeValueAdd(s,d,n,key){
+			  if(key){
+          d.codeValue.splice(key+1,0,{code:"",value:""})
+        }else{
+			    d.codeValue.push({code:"",value:""})
+        }
 				//添加codeValue
 			},
-      codeValueDelete(){
+      codeValueDelete(s,d,n,key){
+        d.codeValue.splice(key,1)
         //删除codeValue
 			},
 		}

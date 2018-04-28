@@ -11,7 +11,7 @@
     </div>
     <el-tree ref="optionsWrapMenuList" class="optionsTree"
              v-if="isLoadingTree"
-             :data="setTree"
+             :data="treeData"
              node-key="id"
              draggable
              highlight-current
@@ -21,6 +21,9 @@
              :default-optionsWraped-keys="defaultoptionsWrapKeys"
              @node-click="handleNodeClick"></el-tree>
     <el-button @click="handleAddTop">添加顶级节点</el-button>
+    <div>
+      字段
+    </div>
   </div>
 </template>
 
@@ -89,7 +92,7 @@ const apiData =  {
     codeTips:"状态码",
     hasCodeValue:false,
     lastEditTime:'2018-03-12 12:23',
-    isEdit: true,
+    isEdit: false,
     children: [{
       id: 6,
       codeName:"returnCode",
@@ -139,11 +142,10 @@ export default {
   name: 'api',
   data(){
     return{
-
       maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id
       non_maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id(不更改)
       isLoadingTree: false,//是否加载节点树
-      setTree: apiData.treelist,//节点树数据
+      treeData: apiData.treelist,//节点树数据
       defaultProps: {
         children: 'children',
         label: 'name'
@@ -159,14 +161,14 @@ export default {
 
     },
     initoptionsWrap(){
-      this.setTree.map((a) => {
+      this.treeData.map((a) => {
         this.defaultoptionsWrapKeys.push(a.id)
       });
       this.isLoadingTree = true;
     },
     handleNodeClick(d,n,s){//点击节点
       // console.log(d,n)
-      d.isEdit = false;//放弃编辑状态
+      //d.isEdit = false;//放弃编辑状态
     },
     renderContent(h,{node,data,store}){//加载节点
       let that = this;
@@ -185,12 +187,16 @@ export default {
       });
     },
     handleAddTop(){
-      this.setTree.push({
+      this.treeData.push({
         id: ++this.maxoptionsWrapId,
-        name: '新增节点',
-        pid: '',
-        isEdit: false,
-        children: []
+        codeName:"",
+        codeExample:"",
+        codeType:"",
+        hasCodeValue:false,
+        codeValue:[],
+        codeTips:"",
+        lastEditTime:"",
+        isEdit: true,
       })
     },
     handleAdd(s,d,n){//增加节点
@@ -199,17 +205,24 @@ export default {
         this.$message.error("最多只支持五级！")
         return false;
       }
-      //添加数据
-      d.children.push({
+      if (!d.children) {
+        this.$set(d, 'children', []);
+      }
+      const newChild = {
         id: ++this.maxoptionsWrapId,
-        name: '新增节点',
-        pid: d.id,
-        isEdit: false,
-        children: []
-      });
+        codeName:"",
+        codeExample:"",
+        codeType:"",
+        hasCodeValue:false,
+        codeValue:[],
+        codeTips:"",
+        lastEditTime:"",
+        isEdit: true,
+      };
+      d.children.push(newChild);
       //展开节点
-      if(!n.optionsWraped){
-        n.optionsWraped = true;
+      if(!n.expanded){
+        n.expanded = true;
       }
     },
     handleEdit(s,d,n){//编辑节点
