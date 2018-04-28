@@ -1,15 +1,33 @@
 <template>
-  <div class="optionsWrap">
-    <div class="optionsHead">
-      <p style="width: 260px;">字段</p>
-      <p style="width: 30px;">类型</p>
-      <p style="width: 30px;">必传</p>
-      <p style="width: 210px;">案例</p>
-      <p style="width: 210px;">说明</p>
-      <p>最后修改</p>
-      <p>操作</p>
+  <div>
+    <div class="apiUrlInfo">
+      <i class="el-icon-location"></i>
+      <span class="apiTypeSpan">{{apiType}}</span>
+      <span class="apiUrlSpan">{{apiUrl}}</span>
+      <el-button size="mini">复制</el-button>
+      <el-button size="mini">访问</el-button>
+      <div class="apiServerList">
+        环境列表:
+        <el-select v-model="apiServer" size="mini">
+          <el-option label="192.168.2.10" value="1">192.168.2.10 <i class="el-icon-check"></i></el-option>
+          <el-option label="www.baidu.com" value="2">www.baidu.com <i class="el-icon-close"></i></el-option>
+        </el-select>
+      </div>
     </div>
-    <el-tree ref="optionsWrapMenuList" class="optionsTree"
+    <el-tabs v-model="optionTabFirst" class="optionTab">
+      <el-tab-pane name="first">
+        <span slot="label"><i class="el-icon-share" style="margin: 0 3px"></i>接口入参</span>
+        <div class="optionsWrap">
+          <div class="optionsHead">
+            <p style="width: 260px;">字段</p>
+            <p style="width: 30px;">类型</p>
+            <p style="width: 30px;">必传</p>
+            <p style="width: 210px;">案例</p>
+            <p style="width: 210px;">说明</p>
+            <p>最后修改</p>
+            <p>操作</p>
+          </div>
+          <el-tree ref="optionsWrapMenuList" class="optionsTree"
              v-if="isLoadingTree"
              :data="treeData"
              node-key="id"
@@ -20,10 +38,79 @@
              :render-content="renderContent"
              :default-optionsWraped-keys="defaultoptionsWrapKeys"
              @node-click="handleNodeClick"></el-tree>
-    <el-button @click="handleAddTop">添加顶级节点</el-button>
-    <div>
-      字段
-    </div>
+          <div>
+            <el-form ref="form" :model="newApiKey" label-width="50px" size="mini">
+              <el-row>
+                <el-col :span="4">
+                  <el-form-item label="名称">
+                    <el-input v-model="newApiKey.codeName" auto-complete="off" placeholder="请输入字段名称"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="3">
+                  <el-form-item label="类型">
+                    <el-select v-model="newApiKey.codeType" size="mini">
+                      <el-option
+                        v-for="item in codeTypeSelect"
+                        :label="item.label"
+                        :value="item.value">
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="3">
+                  <el-form-item label="必传">
+                    <el-select v-model="newApiKey.codeNeed" size="mini">
+                      <el-option
+                        v-for="item in codeNeedSelect"
+                        :label="item.label"
+                        :value="item.value">
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="4">
+                  <el-form-item label="案例">
+                    <el-input v-model="newApiKey.codeExample" auto-complete="off" placeholder="请输入数据案例"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="2">
+                  <el-form-item label="选项">
+                    <span>
+                      <el-checkbox v-model="newApiKey.hasCodeValue"></el-checkbox>
+                    </span>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="5">
+                  <el-form-item label="说明">
+                    <el-input v-model="newApiKey.codeTips" auto-complete="off" placeholder="请输入描述该字段用处"></el-input>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="3">
+                  <el-form-item>
+                    <el-button type="primary" @click="handleAddTop">添加字段</el-button>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row>
+                <el-col :span="10">-</el-col>
+                <el-col :span="7">
+                  <span class="codeValueEditList" v-if="newApiKey.hasCodeValue" v-for="item,key in newApiKey.codeValue">
+                      <el-input class="codeValue_code" size="mini" v-model="item.code"></el-input>
+                      -
+                      <el-input class="codeValue_value" size="mini" v-model="item.value"></el-input>
+                      <i class="el-icon-delete" v-if="newApiKey.codeValue.length>1" @click.stop="newCodeValue('delete',key)"></i>
+                      <i class="el-icon-plus" @click.stop="newCodeValue('add',key)"></i>
+                    </span>
+                </el-col>
+              </el-row>
+            </el-form>
+          </div>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="接口出参" name="second">接口出参</el-tab-pane>
+      <el-tab-pane label="入参+出参" name="third">角色管理</el-tab-pane>
+    </el-tabs>
+
   </div>
 </template>
 
@@ -142,6 +229,10 @@ export default {
   name: 'api',
   data(){
     return{
+      apiUrl:"/get/userInfo/a.json",
+      apiType:"POST",
+      apiServer:"192.168.2.10",
+      optionTabFirst:"first",
       maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id
       non_maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id(不更改)
       isLoadingTree: false,//是否加载节点树
@@ -150,7 +241,30 @@ export default {
         children: 'children',
         label: 'name'
       },
+      codeTypeSelect:[
+        {value:'S',label:'String'},
+        {value:'N',label:'Number'},
+        {value:'O',label:'Object'},
+        {value:'A',label:'Array'},
+        {value:'B',label:'Boolean'}
+      ],
+      codeNeedSelect:[
+        {value:'Y',label:'是'},
+        {value:'N',label:'否'}
+      ],
       defaultoptionsWrapKeys: [],//默认展开节点列表
+      newApiKey:{
+        codeName:"",
+        codeType:"S",
+        codeNeed:"N",
+        codeExample:"",
+        codeTips:"",
+        hasCodeValue:false,
+        codeValue:[
+          {code:"",value:""}
+        ]
+
+      }
     }
   },
   mounted(){
@@ -187,17 +301,21 @@ export default {
       });
     },
     handleAddTop(){
-      this.treeData.push({
-        id: ++this.maxoptionsWrapId,
+      var newData = this.newApiKey;
+      newData.id = ++this.maxoptionsWrapId;
+      newData.lastEditTime = new Date().toJSON();
+      newData.isEdit = false;
+      this.treeData.push(newData);
+      this.newApiKey ={
         codeName:"",
+        codeType:"S",
+        codeNeed:"N",
         codeExample:"",
-        codeType:"",
-        hasCodeValue:false,
-        codeValue:[],
         codeTips:"",
-        lastEditTime:"",
-        isEdit: true,
-      })
+        hasCodeValue:false,
+        codeValue:[{code:"",value:""}]
+      }
+      this.$message("添加成功!")
     },
     handleAdd(s,d,n){//增加节点
       console.log(s,d,n)
@@ -268,6 +386,17 @@ export default {
 
       }
     },
+    newCodeValue:function (type,key) {
+      if(type == "add"){
+        if(this.newApiKey.codeValue.length >0){
+          this.newApiKey.codeValue.splice(key+1,0,{code:"",value:""})
+        }else{
+          this.newApiKey.codeValue.push({code:"",value:""})
+        }
+      }else{
+        this.newApiKey.codeValue.splice(key,1)
+      }
+    }
   }
 }
 </script>
@@ -275,6 +404,10 @@ export default {
   .optionsWrap{
     width:100%;
     height:100%;
+  }
+  .optionTab{
+    margin: 20px;
+    box-shadow: 1px 1px 3px #ddd;
   }
   .optionsTree{
     height:85%;
@@ -320,5 +453,23 @@ export default {
     vertical-align: middle;
     font-size: 12px;
     line-height: 30px;
+  }
+  .apiUrlInfo{
+    font-size: 14px;
+    text-align: left;
+    padding: 5px 10px;
+  }
+  .apiTypeSpan{
+    background: #cc3b23;
+    color: #fff;
+    padding: 2px 5px;
+  }
+  .apiUrlSpan{
+    padding: 2px 10px;
+    margin: 0 20px;
+    border: 1px solid #f1f1f1;
+  }
+  .apiServerList{
+    float: right;
   }
 </style>
