@@ -4,12 +4,12 @@
       <div class="title">
         <h3>登录</h3>
       </div>
-      <el-form ref="loginForm" :model="loginForm" label-width="0" class="loginForm">
-        <el-form-item label="">
-          <el-input v-model="loginForm.id" prefix-icon="el-icon-message" placeholder="请输入用户名/邮箱地址"></el-input>
+      <el-form ref="loginForm" :model="loginForm" :rules="loginRules" label-width="0" class="loginForm">
+        <el-form-item label="" prop="account">
+          <el-input v-model="loginForm.account" prefix-icon="el-icon-message" placeholder="请输入用户名/邮箱地址"></el-input>
         </el-form-item>
-        <el-form-item label="">
-          <el-input v-model="loginForm.pwd" prefix-icon="el-icon-view" type="password" placeholder="请输入密码"></el-input>
+        <el-form-item label="" prop="password">
+          <el-input v-model="loginForm.password" prefix-icon="el-icon-view" type="password" placeholder="请输入密码"></el-input>
         </el-form-item>
         <el-form-item align="right">
           <el-col :span="6" class="forget">
@@ -26,22 +26,67 @@
 </template>
 
 <script>
+import api from '../api/api';
+import {mapActions} from 'vuex'
 export default {
   data () {
     return {
       loginForm:{
-        id:"",
-        pwd:""
-      }
+        account:"",
+        password:""
+      },
+      loginRules: {
+        account: [
+          {required: true, message: '请输入用户名/邮箱地址', trigger: 'blur'},
+          // { validator: this.VTools.checkMobile, messageText:'登录账号' }
+        ],
+        password: [
+          {required: true, message: '请输入密码', trigger: 'blur'},
+          {validator: this.VTools.checkPassword, messageText: '登录密码'}
+        ]
+      },
     }
   },
   methods:{
     login:function () {
-
+      var _this = this;
+      this.$refs.loginForm.validate((valid) => {
+        if (valid) {
+          let postData = {
+            account:this.loginForm.account,
+            password:this.loginForm.password,
+            media:"mobile"
+          }
+          api.login(postData).then((data) => {
+            if(data.result === "100"){
+              sessionStorage.setItem("token",data.dto.token);
+              api.userInfoByToken().then((dataA) => {
+                if(dataA.result === "100"){
+                  _this.setToken({token: data.dto.token});
+                  _this.saveUserInfo(dataA.dto);
+                  this.$message("登录成功");
+                  this.$router.push({path: '/'});
+                }else{
+                  sessionStorage.removeItem("token");
+                }
+              })
+            }
+          })
+        }else{
+          console.log("录入内容格式错误")
+        }
+      })
     },
     register:function () {
 
-    }
+    },
+    ...mapActions([
+      'saveUserInfo',
+      'setToken'
+    ])
+  },
+  mounted() {
+    sessionStorage.removeItem("token");
   }
 }
 </script>

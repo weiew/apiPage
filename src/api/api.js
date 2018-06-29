@@ -1,39 +1,16 @@
 import axios from 'axios';
 import store from '../vuex/store';
-import { globalConfig } from '../globalConf'
-
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 NProgress.configure({ showSpinner: false });
 
-window.wRequestId = function () {
-    var d = new Date().getTime();
-    var requestId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = (d + Math.random() * 16) % 16 | 0;
-        d = Math.floor(d / 16);
-        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
-    return requestId;
-};
-
 axios.interceptors.request.use(function (config) {
     // 发送请求之前做一些处理
     NProgress.start();//顶部加载栏
-    if (store.getters.getToken || sessionStorage.getItem('token')) {
-        config.headers.common['accToken'] = store.getters.getToken?store.getters.getToken:sessionStorage.getItem('token');
+    let token = store.getters.getToken?store.getters.getToken:sessionStorage.getItem('token');
+    if (token) {
+        config.headers.common['authorization'] = "Bearer "+token;
     }
-    if(config.params && config.params.version){
-        config.headers.common['version']=config.params.version;
-    }
-    //
-    config.headers.common['requestId']=wRequestId();
-    if(store.getters.getMediaSource){
-        config.headers.common['mediaSource']=store.getters.getMediaSource;
-    }
-    if(config.data && config.data.tid){
-        config.headers.common['tid']=config.data.tid;
-    }
-
     return config;
 }, function (error) {
     // 当请求异常时做一些处理
@@ -69,42 +46,21 @@ axios.interceptors.response.use(function (response) {
     }
     return Promise.reject(err);
 });
-
 let api = {};
-let serverUrl='/';
-EW.agentUrl.forEach(item =>{
-    let v1 = item.u.match(/#(\S*)\$/)[1]; //生产版本
-    let v2 = item.u.match(/\$(\S*)/)[1]; //生产验证版本
-    if(!/91ins.com/.test(location.origin)){v1 = v2;}//非生产环境使用-生产验证版本
+let serverUrl='http://localhost:3000/';
+let apiList = [
+  {n:"login",u:"api/user/login"},
+  {n:"userInfoByToken",u:"api/user/userInfoByToken"}
+];
+apiList.forEach(item =>{
     let type = "post";
-    let url = serverUrl+item.u.match(/(\S*)#/)[1];
-    let header = {version: v1};
-    if(item.n == "getUpdateInfo"){
-        url = "http://panda.etoppaas.com.cn/common/json/browserVersion.json"
-    }
-    if(item.n == "uploadGlidCompare"){//上传特殊  用原来的ip和端口
-        header['Content-Type'] = 'multipart/form-data';
-    }
-    if((",queryAgreementOrgnazation," +
-            "ucagent_role_queryRole," +
-            "ucagent_role_deleteRole," +
-            "ucagent_orgnazation_findOrgInfo," +
-            "ucagent_orgnazation_queryOrgInfo," +
-            "ucagent_orderPlatform_selectAllTemplate," +
-            "insureagent_insureAgentAgreement_queryInsureAccountInfo," +
-            "insureagent_insureAgentAgreement_queryAgreementInfo," +
-            "insureagent_insureAgentAgreement_agreementInfoByTid," +
-            "getFileLog,").indexOf(','+item.n+',')>=0){
-        type = "get";
-    }
+    let url = serverUrl+item.u;
     api[item.n] = params => {
-        params["version"]=v1;
-        return type=='post'?axios({
+        return axios({
             method: type,
             url: url,
-            data: params,
-            headers:header
-        }).then(res => res.data):axios.get(url,{params:params}).then(res => res.data);
+            data: params
+        }).then(res => res.data);
     }
 });
 export default api;
