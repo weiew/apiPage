@@ -48,6 +48,9 @@ axios.interceptors.response.use(function (response) {
 });
 let api = {};
 let serverUrl='http://localhost:3000/';
+if(/.net/.test(location.origin)){
+  serverUrl = location.origin + '/';
+}
 let apiList = [
   {n:"login",u:"api/user/login"},
   {n:"userInfoByToken",u:"api/user/userInfoByToken"},

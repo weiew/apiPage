@@ -1,5 +1,23 @@
 # api
 
+
+把yarn run build 后，把dist里面的代码全选，压成zip，拖到下面的目录下解压
+
+所在目录
+server:/home/nipic/projects/apiServer/dist
+page:/home/nipic/projects/caoapi
+
+
+解压覆盖后：
+server 永久启动
+
+../node_modules/forever/bin/forever stop app.js   //先关闭之前的
+../node_modules/forever/bin/forever start app.js   //启动现在的
+
+
+
+
+
 > A Vue.js project
 
 ## Build Setup
