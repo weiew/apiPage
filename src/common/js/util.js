@@ -38,9 +38,36 @@ export default {
                 } else {
                     callback();
                 }
-
-                !/^[a-zA-Z\d]*$/.test(value)
-
+            },
+            /**
+             *账号校验
+             */
+            checkAccount: function (rule, value, callback) {
+                var ruleText = /^[\u4e00-\u9fa5]{4,20}$|^[\dA-Za-z_\-]{4,20}$/,
+                    massageText=(rule.messageText?rule.messageText:'用户名');
+                value=value?value.trim():value;
+                if (value === '') {
+                    callback(new Error('请输入'+massageText));
+                } else if (!ruleText.test(value)) {
+                    callback(new Error('格式错误:支持中文, 字母, 数字, \\"-\\", \\"_\\", 的组合, 4-20个字符'));
+                } else {
+                    callback();
+                }
+            },
+            /**
+             *邮箱校验
+             */
+            checkEmail: function (rule, value, callback) {
+                var ruleText = /^[A-Za-z0-9\u4e00-\u9fa5]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/,
+                    massageText=(rule.messageText?rule.messageText:'邮箱');
+                value=value?value.trim():value;
+                if (value === '') {
+                    callback(new Error('请输入'+massageText));
+                } else if (!ruleText.test(value)) {
+                    callback(new Error(massageText+'格式错误:如xxx@xxx.com'));
+                } else {
+                    callback();
+                }
             }
         },
         // 全局工具

@@ -1,28 +1,28 @@
 <template>
-  <div class="loginBg">
-    <div class="login">
+  <div class="registBg">
+    <div class="regist">
       <div class="title">
         <h3>注册</h3>
       </div>
-      <el-form ref="loginForm" :model="loginForm" label-width="0" class="loginForm">
-        <el-form-item label="">
-          <el-input v-model="loginForm.id" prefix-icon="el-icon-star-off" placeholder="请输入用户名"></el-input>
+      <el-form ref="registForm" :model="registForm" status-icon :rules="registRules" label-width="0" class="registForm">
+        <el-form-item label="" prop="account">
+          <el-input v-model="registForm.account" prefix-icon="el-icon-star-off" placeholder="请输入用户名"></el-input>
         </el-form-item>
-        <el-form-item label="">
-          <el-input v-model="loginForm.email" prefix-icon="el-icon-message" placeholder="请输入邮箱地址"></el-input>
+        <el-form-item label="" prop="email">
+          <el-input v-model="registForm.email" prefix-icon="el-icon-message" placeholder="请输入邮箱地址"></el-input>
         </el-form-item>
-        <el-form-item label="">
-          <el-input v-model="loginForm.pwd" prefix-icon="el-icon-view" type="password" placeholder="请输入密码"></el-input>
+        <el-form-item label="" prop="password">
+          <el-input v-model="registForm.password" prefix-icon="el-icon-view" type="password" placeholder="请输入密码"></el-input>
         </el-form-item>
-        <el-form-item label="">
-          <el-input v-model="loginForm.confirmPwd" prefix-icon="el-icon-view" type="password" placeholder="请再次输入密码"></el-input>
+        <el-form-item label="" prop="confirmPwd">
+          <el-input v-model="registForm.confirmPwd" prefix-icon="el-icon-view" type="password" placeholder="请再次输入密码"></el-input>
         </el-form-item>
         <el-form-item align="right">
           <el-col :span="6" class="forget">
             <a class="linkText" href="#/login"><i class="el-icon-question"></i>有账号了？</a>
           </el-col>
           <el-col :span="18">
-            <el-button type="primary" @click="login()" size="small" style="width: 180px">注册</el-button>
+            <el-button type="primary" @click="register()" size="small" style="width: 180px">注册</el-button>
             <a class="linkBtn" href="#/login">登录</a>
           </el-col>
         </el-form-item>
@@ -32,35 +32,83 @@
 </template>
 
 <script>
-  export default {
-    data () {
-      return {
-        loginForm:{
-          id:"",
-          email:"",
-          pwd:"",
-          confirmPwd:"",
-          verifyCode:"",
-        }
+import api from '../api/api';
+export default {
+  data () {
+    let checkConfirmPwd = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'))
+      } else if (value !== this.registForm.password) {
+        callback(new Error('两次输入密码不一致!'))
+      } else {
+        callback()
       }
-    },
-    methods:{
-      login:function () {
-
+    };
+    return {
+      registForm: {
+        account: '',
+        email: '',
+        password: '',
+        confirmPwd: '',
+        verifyCode: ''
       },
-      register:function () {
-
-      },
-      refreshCode:function () {
-
+      registRules: {
+        account: [
+          {required: true, message: '请输入用户名', trigger: ['blur', 'change']},
+          {validator: this.VTools.checkAccount, messageText: '用户名'}
+        ],
+        email: [
+          {required: true, message: '请输入邮箱地址', trigger: 'blur'},
+          {validator: this.VTools.checkEmail, messageText: '邮箱地址'}
+        ],
+        password: [
+          {required: true, message: '请输入密码', trigger: 'blur'},
+          {validator: this.VTools.checkPassword, messageText: '登录密码'}
+        ],
+        confirmPwd: [
+          {required: true, message: '请再次输入密码', trigger: 'blur'},
+          {validator: checkConfirmPwd, messageText: '再次确认密码'}
+        ]
       }
     }
+  },
+  methods: {
+    register: function () {
+      var _this = this;
+      this.$refs.registForm.validate((valid) => {
+        if (valid) {
+          let postData = {
+            account: this.registForm.account,
+            email: this.registForm.email,
+            password: this.registForm.password
+          }
+          api.register(postData).then((data) => {
+            if(data.result === '100'){
+              _this.$message('注册成功,正在跳转登录5...');
+              let number = 5;
+              let jumpInterval = setInterval(function () {
+                _this.$message('注册成功,正在跳转登录' + (--number) + '...');
+                if(number <= 1){
+                  clearInterval(jumpInterval);
+                  setTimeout(function () {
+                    _this.$router.push({path: '/login'});
+                  }, 2000)
+                }
+              }, 1000)
+            }
+          })
+        }else{
+          console.log('录入内容格式错误')
+        }
+      })
+    }
   }
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  .loginBg{
+  .registBg{
     background: url(http://oiy6qbh9k.bkt.clouddn.com/apiPage/register.jpg) no-repeat 100% 100%;
     position: absolute;
     left: 0;
@@ -97,7 +145,7 @@
     text-decoration: none;
     font-size: 12px;
   }
-  .login{
+  .regist{
     position: absolute;
     top: 25%;
     left: 50%;
@@ -106,15 +154,15 @@
     background: #ffffff;
     opacity: 0.95;
   }
-  .login .title{
+  .regist .title{
     background: #242b31;
     height: 60px;
   }
-  .loginForm{
+  .registForm{
     margin: 30px auto;
     width: 80%;
   }
-  .login h3{
+  .regist h3{
     color: #c9b89a;
     line-height: 60px;
     margin: 0;

@@ -4,7 +4,7 @@
       <div class="title">
         <h3>登录</h3>
       </div>
-      <el-form ref="loginForm" :model="loginForm" :rules="loginRules" label-width="0" class="loginForm">
+      <el-form ref="loginForm" :model="loginForm" status-icon :rules="loginRules" label-width="0" class="loginForm">
         <el-form-item label="" prop="account">
           <el-input v-model="loginForm.account" prefix-icon="el-icon-message" placeholder="请输入用户名/邮箱地址"></el-input>
         </el-form-item>

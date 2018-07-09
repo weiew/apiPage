@@ -50,7 +50,8 @@ let api = {};
 let serverUrl='http://localhost:3000/';
 let apiList = [
   {n:"login",u:"api/user/login"},
-  {n:"userInfoByToken",u:"api/user/userInfoByToken"}
+  {n:"userInfoByToken",u:"api/user/userInfoByToken"},
+  {n:"register",u:"api/user/register"}
 ];
 apiList.forEach(item =>{
     let type = "post";
