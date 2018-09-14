@@ -58,10 +58,10 @@ export default {
             media:"mobile"
           }
           api.login(postData).then((data) => {
-            if(data.result === "100"){
+            if(data.code == "200"){
               sessionStorage.setItem("token",data.dto.token);
               api.userInfoByToken().then((dataA) => {
-                if(dataA.result === "100"){
+                if(dataA.code === "200"){
                   _this.setToken({token: data.dto.token});
                   _this.saveUserInfo(dataA.dto);
                   this.$message("登录成功");
@@ -70,6 +70,11 @@ export default {
                   sessionStorage.removeItem("token");
                 }
               })
+            }else{
+              this.$message({
+                message: data.msg || '登录失败',
+                type: 'error'
+              });
             }
           })
         }else{
@@ -94,7 +99,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .loginBg{
-  background: url(http://oiy6qbh9k.bkt.clouddn.com/apiPage/loginBg.jpg) no-repeat 100% 100%;
+  background: url(http://oiy6qbh9k.bkt.clouddn.com/apiPage/bgLight.jpg) no-repeat 100% 100%;
   position: absolute;
   left: 0;
   right: 0;

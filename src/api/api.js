@@ -54,6 +54,7 @@ if(/.net/.test(location.origin)){
 let apiList = [
   {n:"login",u:"api/user/login"},
   {n:"userInfoByToken",u:"api/user/userInfoByToken"},
+  {n:"projectInfo",u:"api/project/info"},
   {n:"register",u:"api/user/register"}
 ];
 apiList.forEach(item =>{

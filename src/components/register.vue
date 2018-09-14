@@ -83,18 +83,20 @@ export default {
             password: this.registForm.password
           }
           api.register(postData).then((data) => {
-            if(data.result === '100'){
-              _this.$message('注册成功,正在跳转登录5...');
-              let number = 5;
-              let jumpInterval = setInterval(function () {
-                _this.$message('注册成功,正在跳转登录' + (--number) + '...');
-                if(number <= 1){
-                  clearInterval(jumpInterval);
-                  setTimeout(function () {
-                    _this.$router.push({path: '/login'});
-                  }, 2000)
-                }
-              }, 1000)
+            if(data.code == '200'){
+              this.$confirm('注册成功，已发送到验证信息到注册邮箱！', '提示', {
+                confirmButtonText: '确定',
+                type: 'success',
+                showCancelButton: false,
+                center: true
+              }).then(() => {
+                _this.$router.push({path: '/login'});
+              });
+            }else{
+              this.$message({
+                message: data.msg || '注册失败',
+                type: 'error'
+              });
             }
           })
         }else{
