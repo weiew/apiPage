@@ -57,10 +57,11 @@ export default {
             password:this.loginForm.password,
             media:"mobile"
           }
-          api.login(postData).then((data) => {
+          api.post('api/user/login')(postData).then((data) => {
             if(data.code == "200"){
               sessionStorage.setItem("token",data.dto.token);
-              api.userInfoByToken().then((dataA) => {
+              sessionStorage.setItem("account",this.loginForm.account);
+              api.post('api/user/userInfoByToken')({account:postData.account}).then((dataA) => {
                 if(dataA.code === "200"){
                   _this.setToken({token: data.dto.token});
                   _this.saveUserInfo(dataA.dto);

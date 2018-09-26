@@ -82,7 +82,7 @@ export default {
             email: this.registForm.email,
             password: this.registForm.password
           }
-          api.register(postData).then((data) => {
+          api.post('api/user/register')(postData).then((data) => {
             if(data.code == '200'){
               this.$confirm('注册成功，已发送到验证信息到注册邮箱！', '提示', {
                 confirmButtonText: '确定',

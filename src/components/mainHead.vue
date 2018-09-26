@@ -203,6 +203,8 @@ export default {
     }
   },
   methods: {
+    queryProject: function () {
+    },
     handleClick: function () {
     },
     handleClose: function () {
@@ -213,6 +215,9 @@ export default {
     },
     savePwd: function () {
     },
+  },
+  created (){
+    this.queryProject();
   }
 }
 </script>

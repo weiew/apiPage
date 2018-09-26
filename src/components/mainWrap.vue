@@ -69,7 +69,10 @@ export default {
   },
   methods: {
     initProject(){
-      api.projectInfo().then((data) => {
+      let postData = {
+        ownerId: sessionStorage.getItem("account")
+      }
+      api.post('api/project/list')(postData).then((data) => {
         if(data.result === "100"){
           _this.setToken({token: data.dto.token});
           _this.saveUserInfo(data.dto);
