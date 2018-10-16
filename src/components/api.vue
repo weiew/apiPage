@@ -1,9 +1,12 @@
 <template>
   <div>
     <div class="apiUrlInfo">
-      <i class="el-icon-location"></i>
-      <span class="apiTypeSpan">{{apiType}}</span>
-      <span class="apiUrlSpan">{{apiUrl}}</span>
+      <el-breadcrumb separator="/" class="breadcrumbApi">
+        <el-breadcrumb-item :to="'/project/'+projectId">返回</el-breadcrumb-item>
+      </el-breadcrumb>
+      名称: <el-input v-model="apiName" size="mini" style="width: 100px;"></el-input>
+      类型: <el-input v-model="apiType" size="mini" style="width: 60px;"></el-input>
+      地址: <el-input v-model="apiUrl" size="mini" style="width: 200px;"></el-input>
       <el-button size="mini">复制</el-button>
       <el-button size="mini">访问</el-button>
       <div class="apiServerList">
@@ -14,221 +17,222 @@
         </el-select>
       </div>
     </div>
-    <el-tabs v-model="optionTabFirst" class="optionTab">
-      <el-tab-pane name="first">
-        <span slot="label"><i class="el-icon-share" style="margin: 0 3px"></i>接口入参</span>
-        <div class="optionsWrap">
-          <div class="optionsHead">
-            <p style="width: 260px;">字段</p>
-            <p style="width: 30px;">类型</p>
-            <p style="width: 30px;">必传</p>
-            <p style="width: 210px;">案例</p>
-            <p style="width: 210px;">说明</p>
-            <p>最后修改</p>
-            <p>操作</p>
+    <div style="position: relative">
+      <el-button size="mini" class="viewJSONTree" @click="viewJSONTree">预览</el-button>
+      <el-button size="mini" class="saveApi" @click="saveApi">保存</el-button>
+      <el-tabs v-model="optionTabFirst" class="optionTab">
+        <el-tab-pane name="first">
+          <span slot="label"><i class="el-icon-share" style="margin: 0 3px"></i>接口入参</span>
+          <div class="optionsWrap">
+            <div class="optionsHead">
+              <p style="width: 260px;">字段</p>
+              <p style="width: 30px;">类型</p>
+              <p style="width: 30px;">必传</p>
+              <p style="width: 210px;">案例</p>
+              <p style="width: 210px;">说明</p>
+              <p>最后修改</p>
+              <p>操作</p>
+            </div>
+            <el-tree ref="optionsWrapMenuList" class="optionsTree"
+               v-if="isLoadingTree"
+               :data="treeDataIn"
+               node-key="id"
+               draggable
+               highlight-current
+               :props="defaultProps"
+               :optionsWrap-on-click-node="false"
+               :render-content="renderContent"
+               :default-optionsWraped-keys="defaultoptionsWrapKeys"
+               @node-click="handleNodeClick"></el-tree>
+            <div>
+              <el-form ref="form" :model="newApiKey" label-width="50px" size="mini">
+                <el-row>
+                  <el-col :span="4">
+                    <el-form-item label="名称">
+                      <el-input v-model="newApiKey.codeName" auto-complete="off" placeholder="请输入字段名称"></el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="3">
+                    <el-form-item label="类型">
+                      <el-select v-model="newApiKey.codeType" size="mini">
+                        <el-option
+                          v-for="item in codeTypeSelect"
+                          :label="item.label"
+                          :value="item.value">
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="3">
+                    <el-form-item label="必传">
+                      <el-select v-model="newApiKey.codeNeed" size="mini">
+                        <el-option
+                          v-for="item in codeNeedSelect"
+                          :label="item.label"
+                          :value="item.value">
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="4">
+                    <el-form-item label="案例">
+                      <el-input v-model="newApiKey.codeExample" auto-complete="off" placeholder="请输入数据案例"></el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="2">
+                    <el-form-item label="选项">
+                      <span>
+                        <el-checkbox v-model="newApiKey.hasCodeValue"></el-checkbox>
+                      </span>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="5">
+                    <el-form-item label="说明">
+                      <el-input v-model="newApiKey.codeTips" auto-complete="off" placeholder="请输入描述该字段用处"></el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="3">
+                    <el-form-item>
+                      <el-button type="primary" @click="handleAddTop">添加字段</el-button>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-row>
+                  <el-col :span="10">-</el-col>
+                  <el-col :span="7">
+                    <span class="codeValueEditList" v-if="newApiKey.hasCodeValue" v-for="item,key in newApiKey.codeValue">
+                        <el-input class="codeValue_code" size="mini" v-model="item.code"></el-input>
+                        -
+                        <el-input class="codeValue_value" size="mini" v-model="item.value"></el-input>
+                        <i class="el-icon-delete" v-if="newApiKey.codeValue.length>1" @click.stop="newCodeValue('delete',key)"></i>
+                        <i class="el-icon-plus" @click.stop="newCodeValue('add',key)"></i>
+                      </span>
+                  </el-col>
+                </el-row>
+              </el-form>
+            </div>
           </div>
-          <el-tree ref="optionsWrapMenuList" class="optionsTree"
-             v-if="isLoadingTree"
-             :data="treeData"
-             node-key="id"
-             draggable
-             highlight-current
-             :props="defaultProps"
-             :optionsWrap-on-click-node="false"
-             :render-content="renderContent"
-             :default-optionsWraped-keys="defaultoptionsWrapKeys"
-             @node-click="handleNodeClick"></el-tree>
-          <div>
-            <el-form ref="form" :model="newApiKey" label-width="50px" size="mini">
-              <el-row>
-                <el-col :span="4">
-                  <el-form-item label="名称">
-                    <el-input v-model="newApiKey.codeName" auto-complete="off" placeholder="请输入字段名称"></el-input>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="3">
-                  <el-form-item label="类型">
-                    <el-select v-model="newApiKey.codeType" size="mini">
-                      <el-option
-                        v-for="item in codeTypeSelect"
-                        :label="item.label"
-                        :value="item.value">
-                      </el-option>
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="3">
-                  <el-form-item label="必传">
-                    <el-select v-model="newApiKey.codeNeed" size="mini">
-                      <el-option
-                        v-for="item in codeNeedSelect"
-                        :label="item.label"
-                        :value="item.value">
-                      </el-option>
-                    </el-select>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="4">
-                  <el-form-item label="案例">
-                    <el-input v-model="newApiKey.codeExample" auto-complete="off" placeholder="请输入数据案例"></el-input>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="2">
-                  <el-form-item label="选项">
-                    <span>
-                      <el-checkbox v-model="newApiKey.hasCodeValue"></el-checkbox>
-                    </span>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="5">
-                  <el-form-item label="说明">
-                    <el-input v-model="newApiKey.codeTips" auto-complete="off" placeholder="请输入描述该字段用处"></el-input>
-                  </el-form-item>
-                </el-col>
-                <el-col :span="3">
-                  <el-form-item>
-                    <el-button type="primary" @click="handleAddTop">添加字段</el-button>
-                  </el-form-item>
-                </el-col>
-              </el-row>
-              <el-row>
-                <el-col :span="10">-</el-col>
-                <el-col :span="7">
-                  <span class="codeValueEditList" v-if="newApiKey.hasCodeValue" v-for="item,key in newApiKey.codeValue">
-                      <el-input class="codeValue_code" size="mini" v-model="item.code"></el-input>
-                      -
-                      <el-input class="codeValue_value" size="mini" v-model="item.value"></el-input>
-                      <i class="el-icon-delete" v-if="newApiKey.codeValue.length>1" @click.stop="newCodeValue('delete',key)"></i>
-                      <i class="el-icon-plus" @click.stop="newCodeValue('add',key)"></i>
-                    </span>
-                </el-col>
-              </el-row>
-            </el-form>
+        </el-tab-pane>
+        <el-tab-pane name="second">
+          <span slot="label"><i class="el-icon-share" style="margin: 0 3px"></i>接口出参</span>
+          <div class="optionsWrap">
+            <div class="optionsHead">
+              <p style="width: 260px;">字段</p>
+              <p style="width: 30px;">类型</p>
+              <p style="width: 30px;">必传</p>
+              <p style="width: 210px;">案例</p>
+              <p style="width: 210px;">说明</p>
+              <p>最后修改</p>
+              <p>操作</p>
+            </div>
+            <el-tree ref="optionsWrapMenuList" class="optionsTree"
+                     v-if="isLoadingTree"
+                     :data="treeDataOut"
+                     node-key="id"
+                     draggable
+                     highlight-current
+                     :props="defaultProps"
+                     :optionsWrap-on-click-node="false"
+                     :render-content="renderContent"
+                     :default-optionsWraped-keys="defaultoptionsWrapKeys"
+                     @node-click="handleNodeClick"></el-tree>
+            <div>
+              <el-form ref="form" :model="newApiKey" label-width="50px" size="mini">
+                <el-row>
+                  <el-col :span="4">
+                    <el-form-item label="名称">
+                      <el-input v-model="newApiKey.codeName" auto-complete="off" placeholder="请输入字段名称"></el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="3">
+                    <el-form-item label="类型">
+                      <el-select v-model="newApiKey.codeType" size="mini">
+                        <el-option
+                          v-for="item in codeTypeSelect"
+                          :label="item.label"
+                          :value="item.value">
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="3">
+                    <el-form-item label="必传">
+                      <el-select v-model="newApiKey.codeNeed" size="mini">
+                        <el-option
+                          v-for="item in codeNeedSelect"
+                          :label="item.label"
+                          :value="item.value">
+                        </el-option>
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="4">
+                    <el-form-item label="案例">
+                      <el-input v-model="newApiKey.codeExample" auto-complete="off" placeholder="请输入数据案例"></el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="2">
+                    <el-form-item label="选项">
+                      <span>
+                        <el-checkbox v-model="newApiKey.hasCodeValue"></el-checkbox>
+                      </span>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="5">
+                    <el-form-item label="说明">
+                      <el-input v-model="newApiKey.codeTips" auto-complete="off" placeholder="请输入描述该字段用处"></el-input>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="3">
+                    <el-form-item>
+                      <el-button type="primary" @click="handleAddTop">添加字段</el-button>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-row>
+                  <el-col :span="10">-</el-col>
+                  <el-col :span="7">
+                    <span class="codeValueEditList" v-if="newApiKey.hasCodeValue" v-for="item,key in newApiKey.codeValue">
+                        <el-input class="codeValue_code" size="mini" v-model="item.code"></el-input>
+                        -
+                        <el-input class="codeValue_value" size="mini" v-model="item.value"></el-input>
+                        <i class="el-icon-delete" v-if="newApiKey.codeValue.length>1" @click.stop="newCodeValue('delete',key)"></i>
+                        <i class="el-icon-plus" @click.stop="newCodeValue('add',key)"></i>
+                      </span>
+                  </el-col>
+                </el-row>
+              </el-form>
+            </div>
           </div>
+        </el-tab-pane>
+        <el-tab-pane label="入参+出参" name="third">入参+出参</el-tab-pane>
+      </el-tabs>
+      <!--接口参数预览 -->
+      <el-dialog
+        top="10px"
+        :visible.sync="viewJSON"
+        width="800px">
+        <tree-view :data="viewJSONData" ></tree-view>
+        <div slot="footer" class="dialog-footer" align="center">
+          <el-button @click="viewJSON = false">关闭</el-button>
         </div>
-      </el-tab-pane>
-      <el-tab-pane label="接口出参" name="second">接口出参</el-tab-pane>
-      <el-tab-pane label="入参+出参" name="third">角色管理</el-tab-pane>
-    </el-tabs>
-
+      </el-dialog>
+    </div>
   </div>
 </template>
 
 <script>
+import api from '../api/api';
 import apiOptionsTree from '@/components/apiOptionsTree'
 const apiData =  {
   maxoptionsWrapId: 95,
-  treelist: [{
-    id: 1,
-    codeName:"loginName",
-    codeExample:"100",
-    codeType:"S",
-    codeNeed:"Y",
-    codeTips:"状态码",
-    hasCodeValue:false,
-    lastEditTime:'2018-03-12 12:23',
-    isEdit: false,
-    children: [{
-      id: 2,
-      codeName:"media",
-      codeExample:"100",
-      codeType:"B",
-      hasCodeValue:true,
-      codeValue:[
-        {code:"pc",value:"电脑端"},
-        {code:"mobile",value:"移动端"},
-        {code:"iphone",value:"苹果手机"}
-      ],
-      codeTips:"状态码",
-      lastEditTime:'2018-03-12 12:23',
-      isEdit: false,
-    },{
-      id: 3,
-      codeName:"userType",
-      codeExample:"100",
-      codeType:"S",
-      hasCodeValue:true,
-      codeValue:[
-        {code:"admin",value:"管理员"},
-        {code:"test",value:"测试"},
-        {code:"dev",value:"开发"}
-      ],
-      codeTips:"状态码",
-      lastEditTime:'2018-03-12 12:23',
-      isEdit: false,
-    },{
-      id: 4,
-      codeName:"cityCode",
-      codeExample:"100",
-      codeType:"S",
-      hasCodeValue:true,
-      codeValue:[
-        {code:"1",value:"北京市"},
-        {code:"2",value:"深圳市"},
-        {code:"3",value:"广州市"}
-      ],
-      codeTips:"状态码",
-      lastEditTime:'2018-03-12 12:23',
-      isEdit: false,
-    }]
-  }, {
-    id: 5,
-    codeName:"returnCode",
-    codeExample:"100",
-    codeType:"S",
-    codeTips:"状态码",
-    hasCodeValue:false,
-    lastEditTime:'2018-03-12 12:23',
-    isEdit: false,
-    children: [{
-      id: 6,
-      codeName:"returnCode",
-      codeExample:"100",
-      codeType:"S",
-      hasCodeValue:true,
-      codeValue:[
-        {code:"1",value:"选项1"},
-        {code:"2",value:"选项2"},
-        {code:"3",value:"选项3"}
-      ],
-      codeTips:"状态码",
-      lastEditTime:'2018-03-12 12:23',
-      isEdit: false,
-    },{
-      id: 7,
-      codeName:"returnCode",
-      codeExample:"100",
-      codeType:"S",
-      hasCodeValue:true,
-      codeValue:[
-        {code:"1",value:"选项1"},
-        {code:"2",value:"选项2"},
-        {code:"3",value:"选项3"}
-      ],
-      codeTips:"状态码",
-      lastEditTime:'2018-03-12 12:23',
-      isEdit: false,
-    },{
-      id: 8,
-      codeName:"returnCode",
-      codeExample:"100",
-      codeType:"S",
-      hasCodeValue:true,
-      codeValue:[
-        {code:"1",value:"选项1"},
-        {code:"2",value:"选项2"},
-        {code:"3",value:"选项3"}
-      ],
-      codeTips:"状态码",
-      lastEditTime:'2018-03-12 12:23',
-      isEdit: false,
-    }]
-  }]
 }
 export default {
   name: 'api',
   data(){
     return{
+      projectId:'',
+      apiName:"",
       apiUrl:"/get/userInfo/a.json",
       apiType:"POST",
       apiServer:"192.168.2.10",
@@ -236,7 +240,10 @@ export default {
       maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id
       non_maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id(不更改)
       isLoadingTree: false,//是否加载节点树
-      treeData: apiData.treelist,//节点树数据
+      treeDataIn: [],//入参节点树数据
+      treeDataOut: [],//出参节点树数据
+      viewJSON: false,
+      viewJSONData: [],
       defaultProps: {
         children: 'children',
         label: 'name'
@@ -267,15 +274,36 @@ export default {
       }
     }
   },
-  mounted(){
-    this.initoptionsWrap()
-  },
   methods: {
+    getApiInfo (){
+      this.projectId = this.$route.params.project;
+      this.apiId = this.$route.params.id;
+      api.post('api/apiData/apiDetail')({id: this.apiId}).then((data) => {
+        if(data.code == "200"){
+          let {dto} = data;
+          this.apiUrl = dto.address;
+          this.apiType = dto.type;
+          this.apiName = dto.name;
+          if(dto.paramIn){
+            this.treeDataIn = JSON.parse(dto.paramIn);
+            this.viewJSONData = JSON.parse(dto.paramIn);
+          }
+          if(dto.paramOut){
+            this.treeDataOut = JSON.parse(dto.paramOut);
+          }
+        }else{
+          this.$message({
+            message: data.msg || '添加失败',
+            type: 'error'
+          });
+        }
+      })
+    },
     codemirrorChange:function(){
 
     },
     initoptionsWrap(){
-      this.treeData.map((a) => {
+      this.treeDataIn.map((a) => {
         this.defaultoptionsWrapKeys.push(a.id)
       });
       this.isLoadingTree = true;
@@ -305,7 +333,13 @@ export default {
       newData.id = ++this.maxoptionsWrapId;
       newData.lastEditTime = new Date().toJSON();
       newData.isEdit = false;
-      this.treeData.push(newData);
+      if(this.optionTabFirst == "first"){
+        this.treeDataIn.push(newData);
+      }else if(this.optionTabFirst == "second"){
+        this.treeDataOut.push(newData);
+      }else{
+        return
+      }
       this.newApiKey ={
         codeName:"",
         codeType:"S",
@@ -396,7 +430,45 @@ export default {
       }else{
         this.newApiKey.codeValue.splice(key,1)
       }
+    },
+    viewJSONTree (){
+      this.viewJSON = true;
+      if(this.optionTabFirst == "first"){
+        this.viewJSONData = this.treeDataIn;
+      }else if(this.optionTabFirst == "second"){
+        this.viewJSONData = this.treeDataOut;
+      }else {
+        this.viewJSONData = [];
+      }
+    },
+    saveApi () {
+      let postData = {
+        id: this.apiId,
+        type: this.apiType,
+        address: this.apiUrl,
+        name: this.apiName,
+        paramIn: JSON.stringify(this.treeDataIn),
+        paramOut: JSON.stringify(this.treeDataOut),
+        editor: sessionStorage.getItem("account")
+      }
+      api.post('api/apiData/editApi')(postData).then((data) => {
+        if(data.code == "200"){
+          this.$message({
+            message: '保存成功！',
+            type: 'success'
+          });
+        }else{
+          this.$message({
+            message: data.msg || '添加失败',
+            type: 'error'
+          });
+        }
+      })
     }
+  },
+  mounted (){
+    this.getApiInfo();
+    this.initoptionsWrap();
   }
 }
 </script>
@@ -471,5 +543,26 @@ export default {
   }
   .apiServerList{
     float: right;
+  }
+  .viewJSONTree{
+    position: absolute;
+    right:100px;
+    top:5px;
+    z-index: 100;
+  }
+  .saveApi{
+    position: absolute;
+    right:40px;
+    top:5px;
+    z-index: 100;
+  }
+  .breadcrumbApi{
+    display: inline-block;
+    border: 1px solid #ccc;
+    padding: 3px 5px;
+    vertical-align: middle;
+    margin-bottom: 2px;
+    cursor: pointer;
+    margin-right: 60px;
   }
 </style>

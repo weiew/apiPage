@@ -10,6 +10,14 @@ export default {
     install(Vue,options){
         // 校验工具
         Vue.prototype.VTools={
+            dateTimeFA (row,column,value){
+              if(value){
+                value = new Date(value);
+                return value.toJSON().slice(0,10)+" "+value.toTimeString().slice(0,8);
+              }else{
+                return '----:--:-- --:--'
+              }
+            },
             /**
              *手机号检验
              */

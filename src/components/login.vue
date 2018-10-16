@@ -9,7 +9,7 @@
           <el-input v-model="loginForm.account" prefix-icon="el-icon-message" placeholder="请输入用户名/邮箱地址"></el-input>
         </el-form-item>
         <el-form-item label="" prop="password">
-          <el-input v-model="loginForm.password" prefix-icon="el-icon-view" type="password" placeholder="请输入密码"></el-input>
+          <el-input v-model="loginForm.password" prefix-icon="el-icon-view" type="password" placeholder="请输入密码" @keyup.enter="login"></el-input>
         </el-form-item>
         <el-form-item align="right">
           <el-col :span="6" class="forget">
@@ -62,7 +62,7 @@ export default {
               sessionStorage.setItem("token",data.dto.token);
               sessionStorage.setItem("account",this.loginForm.account);
               api.post('api/user/userInfoByToken')({account:postData.account}).then((dataA) => {
-                if(dataA.code === "200"){
+                if(dataA.code == "200"){
                   _this.setToken({token: data.dto.token});
                   _this.saveUserInfo(dataA.dto);
                   this.$message("登录成功");

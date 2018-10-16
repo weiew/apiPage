@@ -8,10 +8,12 @@ import router from './router'
 import Vuex from 'vuex'
 import store from './vuex/store'
 import ElementUI from 'element-ui'
+import TreeView from "vue-json-tree-view"
 import util from './common/js/util'
 
 Vue.use(Vuex)
 Vue.use(ElementUI)
+Vue.use(TreeView)
 Vue.config.productionTip = false
 Vue.use(util);
 /* eslint-disable no-new */
