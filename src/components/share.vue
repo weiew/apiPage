@@ -1,6 +1,6 @@
 <template>
   <div style="text-align: left;padding: 5px 20px; font-size: 12px">
-    <el-row :getter="24" type="flex" align="top">
+    <el-row :getter="24" type="flex" align="top" v-if="$route.params.project">
       <el-col :span="20">
         <div class="projectInfo">
           <p>项目名称: <span>{{projectInfo.name}}</span></p>
@@ -9,10 +9,7 @@
           <p>创建时间: <span>{{projectInfo.createTime}}</span></p>
           <p v-show="projectInfo.membersNo">成员人数: <span>{{projectInfo.membersNo}}</span></p>
         </div>
-        <div class="titleA">接口列表：
-          <el-button size="mini" type="danger" @click="shareProject()">分享项目</el-button>
-          <el-button size="mini" type="warning" @click="newApi()">新增接口</el-button>
-        </div>
+        <div class="titleA">接口列表：</div>
         <el-table
           :data="apiList"
           stripe
@@ -28,54 +25,41 @@
           <el-table-column prop="status" label="状态" width="60"></el-table-column>
           <el-table-column fixed="right" class-name="mine_smallCell" label="操作" min-width="140" header-align="center" align="center">
             <template scope="scope">
-              <el-button size="mini" type="danger" icon="el-icon-delete" @click="deleteApi(scope.row)"></el-button>
-              <el-button size="mini" type="warning" icon="el-icon-edit" @click="toApi(scope.row)"></el-button>
-              <el-button slot="reference" size="mini" icon="el-icon-document" @click="apiDetail(scope.row)"></el-button>
+              <el-button slot="reference" size="mini" icon="el-icon-document" @click="getApiInfo(scope.row.id)"></el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-col>
-<!--      <el-col :span="10" v-show="apiDetailShow">
-        <tree-view :data="apiDetailIn" :options="{maxDepth: 3}"></tree-view>
-      </el-col>-->
-      <el-col :span="4">
-        <div class="titleB">成员</div>
-        <ul class="memberUl">
-          <li v-for="item in memberList">
-            <p><img :src="item.img" alt=""></p>
-            <span>{{item.name}}</span>
-          </li>
-        </ul>
-      </el-col>
     </el-row>
 
-    <!--新增接口 -->
-    <el-dialog
-      title="新增接口"
-      :visible.sync="newApiVisible"
-      width="500px"
-      :before-close="closeNewApi">
-      <el-form :model="newApiForm" ref="newApiForm" :rules="newApiFormRules" label-width="80px">
-        <el-row>
-          <el-col>
-            <el-form-item label="接口名称" prop="name">
-              <el-input v-model="newApiForm.name" placeholder="接口的简称" auto-complete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="接口地址" prop="address">
-              <el-input v-model="newApiForm.address" placeholder="http://xxx.com/ 域名后面部分" auto-complete="off"></el-input>
-            </el-form-item>
-            <el-form-item label="接口类型">
-              <el-radio v-model="newApiForm.type" label="post">post</el-radio>
-              <el-radio v-model="newApiForm.type" label="get">get</el-radio>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="newApiVisible = false">取 消</el-button>
-        <el-button type="primary" @click="addNewApi">新 增</el-button>
+    <el-row v-if="!$route.params.project">
+      <div>
+        api 相关描述
+        名称: {{apiInfo.name}}
+        类型: {{apiInfo.type}}
+        地址: {{apiInfo.address}}
       </div>
-    </el-dialog>
+      <el-tabs v-model="apiDetailTabs" @tab-click="apiDetailTabsClick">
+        <el-tab-pane label="入参" name="in">
+          <tree-view :data="apiDetailIn"></tree-view>
+        </el-tab-pane>
+        <el-tab-pane label="出参" name="out">
+          <tree-view :data="apiDetailOut"></tree-view>
+        </el-tab-pane>
+        <el-tab-pane label="入参+出参" name="inAndOut">
+          <el-row :getter="24">
+            <el-col :span="12">
+              入参：
+              <tree-view :data="apiDetailIn" ></tree-view>
+            </el-col>
+            <el-col :span="12">
+              出参：
+              <tree-view :data="apiDetailOut"></tree-view>
+            </el-col>
+          </el-row>
+        </el-tab-pane>
+      </el-tabs>
+    </el-row>
     <!--接口参数预览 -->
     <el-dialog
       top="10px"
@@ -105,9 +89,6 @@
         <el-button @click="apiDetailShow = false">关闭</el-button>
       </div>
     </el-dialog>
-
-
-
   </div>
 </template>
 
@@ -119,6 +100,7 @@ export default {
     return{
       projectId:'',
       projectInfo:{},
+      apiInfo:{},
       memberList: [
         {img:"http://e.weiew.net/images/194628.jpg", name: "零八二七丶"},
         {img:"http://e.weiew.net/images/76465.jpg", name: "weiew"},
@@ -133,23 +115,11 @@ export default {
       apiDetailIn: [],
       apiDetailOut: [],
       apiDetailWidth:"80%",
-      newApiVisible: false,
-      newApiForm:{
-        name:"",
-          address:"",
-          belong:"",
-          type:"post",
-      },
-      newApiFormRules: {
-        name: [{required: true, message: '请输入接口名称', trigger: 'blur'}],
-        address: [{required: true, message: '请输入接口地址', trigger: 'blur'}],
-      },
     }
   },
   methods: {
-    getProjectInfo (){
-      this.projectId = this.$route.params.id;
-      api.post('api/project/projectInfo')({projectId: this.projectId}).then((data) => {
+    getProjectInfo (id){
+      api.post('api/project/projectInfo')({projectId: id}).then((data) => {
         if(data.code == "200"){
           this.projectInfo = data.projectInfo;
           this.apiList = data.apiList;
@@ -161,48 +131,15 @@ export default {
         }
       })
     },
-    shareProject (){
-      this.$alert('复制: http://www.weiew.net/#/share/project/'+this.projectId, '分享地址（该地址只有查看权限)', {
-        confirmButtonText: '确定'
-      });
-    },
-    newApi (){
-      this.newApiVisible = true;
-    },
-    closeNewApi (){
-      this.newApiVisible = true;
-    },
-    addNewApi (){
-      this.$refs.newApiForm.validate((valid) => {
-        if(valid){
-          let postData = {
-            editor: sessionStorage.getItem("account"),
-            projectId: this.projectId,
-            name: this.newApiForm.name,
-            type: this.newApiForm.type,
-            address: this.newApiForm.address
-          }
-          api.post('api/apiData/addApi')(postData).then((data) => {
-            if(data.code == "200"){
-              this.$message("添加成功");
-              this.getProjectInfo();
-              this.newApiVisible = false;
-            }else{
-              this.$message({
-                message: data.msg || '添加失败',
-                type: 'error'
-              });
-            }
-          })
-        }
-      })
-    },
-    apiDetail(row){
-      this.apiDetailShow = true;
-      this.apiDetailTabs = "in";
-      api.post('api/apiData/apiDetail')({id: row.id}).then((data) => {
+    getApiInfo(id){
+      if(this.$route.params.project){
+        this.apiDetailShow = true;
+        this.apiDetailTabs = "in";
+      }
+      api.post('api/apiData/apiDetail')({id: id}).then((data) => {
         let {dto} = data;
         if(data.code == "200"){
+          this.apiInfo = dto;
           if(dto.paramIn){
             this.apiDetailIn = this.jsonViewData(dto.paramIn);
           }
@@ -256,17 +193,15 @@ export default {
         this.apiDetailWidth = "80%";
       }
     },
-    toApi (row){
-      this.$router.push({path: '/api/'+this.projectId+'/'+row.id});
-    },
-    deleteApi (){
-
-    },
   },
   mounted(){
   },
   created() {
-    this.getProjectInfo();
+      if(this.$route.params.project){
+        this.getProjectInfo(this.$route.params.project);
+      }else{
+        this.getApiInfo(this.$route.params.api);
+      }
   },
   watch: {
     '$route' () {

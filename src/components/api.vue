@@ -19,6 +19,7 @@
     </div>
     <div style="position: relative">
       <el-button size="mini" class="viewJSONTree" @click="viewJSONTree">预览</el-button>
+      <el-button size="mini" class="shareApi" @click="shareApi">分享</el-button>
       <el-button size="mini" class="saveApi" @click="saveApi">保存</el-button>
       <el-tabs v-model="optionTabFirst" class="optionTab">
         <el-tab-pane name="first">
@@ -434,12 +435,47 @@ export default {
     viewJSONTree (){
       this.viewJSON = true;
       if(this.optionTabFirst == "first"){
-        this.viewJSONData = this.treeDataIn;
+        this.viewJSONData = this.jsonViewData(this.treeDataIn);
       }else if(this.optionTabFirst == "second"){
-        this.viewJSONData = this.treeDataOut;
+        this.viewJSONData = this.jsonViewData(this.treeDataOut);
       }else {
         this.viewJSONData = [];
       }
+    },
+    jsonViewDataFun (obj,saveObj){
+      const typeObj = {
+        S:'String',
+        N:'Number',
+        O:'Object',
+        A:'Array',
+        B:'Boolean'
+      }
+      if(obj.children && obj.children.length >0){
+        saveObj[obj.codeName] = {};
+        obj.children.forEach(itemChild =>{
+          this.jsonViewDataFun(itemChild,saveObj[obj.codeName]);
+        })
+      }else if(obj.codeName){
+        const need = obj.codeNeed=='Y'?'-必传':'';
+        const type = typeObj[obj.codeType];
+        saveObj[obj.codeName] = type + need +'-示例:'+obj.codeExample;
+        if(obj.codeTips){
+          saveObj[obj.codeName] += " 说明:"+obj.codeTips;
+        }
+      }
+    },
+    jsonViewData(data){
+      typeof data == 'string' && (data= JSON.parse(data));
+      let newData = {};
+      data.forEach(item=>{
+        this.jsonViewDataFun(item,newData);
+      });
+      return newData;
+    },
+    shareApi(){
+      this.$alert('复制: http://www.weiew.net/#/share/api/'+this.apiId, '分享地址（该地址只有查看权限)', {
+        confirmButtonText: '确定'
+      });
     },
     saveApi () {
       let postData = {
@@ -547,6 +583,12 @@ export default {
   .viewJSONTree{
     position: absolute;
     right:100px;
+    top:5px;
+    z-index: 100;
+  }
+  .shareApi{
+    position: absolute;
+    right:160px;
     top:5px;
     z-index: 100;
   }

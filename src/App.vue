@@ -35,4 +35,17 @@ export default {
     padding: 5px 10px;
     margin-bottom: 10px;
   }
+  .tree-view-item-key {
+    color: #666;
+  }
+  .tree-view-item {
+    color: #de8100;
+  }
+  .tree-view-item-key-with-chevron.opened::before{
+    top: 1px;
+  }
+  .tree-view-item-key-with-chevron::before{
+    top: 1px;
+    font-size: 6px;
+  }
 </style>
