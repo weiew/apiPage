@@ -46,7 +46,8 @@ axios.interceptors.response.use(function (response) {
     }
     return Promise.reject(err);
 });
-let serverUrl='http://www.weiew.net/';
+//let serverUrl='http://www.weiew.net/';
+let serverUrl='http://localhost:3000/';
 if(/.net/.test(location.origin)){
   serverUrl = location.origin + '/';
 }

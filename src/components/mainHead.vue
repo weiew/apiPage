@@ -1,23 +1,23 @@
 <template>
   <div>
-
-    <el-header>
-      <el-menu
-        class="el-header-menu"
-        mode="horizontal"
-        background-color="#545c64"
-        text-color="#fff"
-        active-text-color="#ffd04b">
-        <el-menu-item @click="newProjectVisible = true" index="3">新建项目</el-menu-item>
-        <el-submenu index="1">
-          <template slot="title">账号</template>
-          <el-menu-item index="4" @click="settingVisible = true">设置</el-menu-item>
-          <el-menu-item index="5"><a href="/#/login" class="menuLink">退出</a></el-menu-item>
-        </el-submenu>
-      </el-menu>
-    </el-header>
+    <img src="http://e.weiew.net/images/logo.png" style="position: absolute;left: 0;">
+    <el-menu
+      class="el-header-menu"
+      mode="horizontal"
+      background-color="#24292e"
+      text-color="#fff"
+      active-text-color="#ffd04b"
+      style="float: right">
+      <el-menu-item @click="newProjectVisible = true" index="3">新建项目</el-menu-item>
+      <el-submenu index="1">
+        <template slot="title">账号</template>
+        <el-menu-item index="4" @click="settingVisible = true">设置</el-menu-item>
+        <el-menu-item index="5"><a href="/#/login" class="menuLink">退出</a></el-menu-item>
+      </el-submenu>
+    </el-menu>
     <!--新增项目 -->
     <el-dialog
+      :modal-append-to-body='false'
       title="创建项目"
       :visible.sync="newProjectVisible"
       width="500px"
@@ -37,7 +37,7 @@
                   :value="item.value">
                 </el-option>
               </el-select>
-            </el-form-item>
+            </el-form-item><!--
             <el-form-item label="项目成员">
               <el-select
                 style="width:100%;"
@@ -54,7 +54,7 @@
                   :value="item.value">
                 </el-option>
               </el-select>
-            </el-form-item>
+            </el-form-item>-->
           </el-col>
         </el-row>
       </el-form>
@@ -68,6 +68,7 @@
 
     <!--编辑用户信息 -->
     <el-dialog
+      :modal-append-to-body='false'
       :visible.sync="settingVisible"
       width="600px">
       <el-tabs v-model="tabsWrapActive" @tab-click="handleClick" class="tabsWrap">
@@ -198,23 +199,21 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style>
   .el-header {
-    color: #333;
-    text-align: right;
-    line-height: 30px;
-    height: 30px !important;
-    background: #545c64;
+    color: #fff;
+    background: #24292e;
+    box-shadow: 2px 2px 2px #ccc;
+    z-index: 20;
   }
   .el-header-menu .el-menu--horizontal>.el-submenu .el-submenu__title{
-    height: 30px !important;
-    line-height: 30px !important;
+/*    height: 30px !important;
+    line-height: 30px !important;*/
   }
   .el-header-menu{
-    height: 30px !important;
-    float: right;
+/*    height: 30px !important;*/
   }
   .el-header-menu .el-menu-item{
-    height: 30px !important;
-    line-height: 30px !important;
+/*    height: 30px !important;
+    line-height: 30px !important;*/
   }
   .el-header-menu{
 

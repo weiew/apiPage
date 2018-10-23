@@ -1,38 +1,38 @@
 <template>
-  <div>
+  <div style="background: #fff">
     <div class="apiUrlInfo">
       <el-breadcrumb separator="/" class="breadcrumbApi">
         <el-breadcrumb-item :to="'/project/'+projectId">返回</el-breadcrumb-item>
       </el-breadcrumb>
-      名称: <el-input v-model="apiName" size="mini" style="width: 100px;"></el-input>
-      类型: <el-input v-model="apiType" size="mini" style="width: 60px;"></el-input>
-      地址: <el-input v-model="apiUrl" size="mini" style="width: 200px;"></el-input>
-      <el-button size="mini">复制</el-button>
+      名称: <el-input v-model="apiName" size="mini" @change="saveApi" style="width: 100px;"></el-input>
+      类型: <el-input v-model="apiType" size="mini" @change="saveApi" style="width: 60px;"></el-input>
+      地址: <el-input v-model="apiUrl" size="mini" @change="saveApi" style="width: 200px;"></el-input>
+<!--      <el-button size="mini">复制</el-button>
       <el-button size="mini">访问</el-button>
-      <div class="apiServerList">
+     <div class="apiServerList">
         环境列表:
         <el-select v-model="apiServer" size="mini">
           <el-option label="192.168.2.10" value="1">192.168.2.10 <i class="el-icon-check"></i></el-option>
           <el-option label="www.baidu.com" value="2">www.baidu.com <i class="el-icon-close"></i></el-option>
         </el-select>
-      </div>
+      </div>-->
     </div>
     <div style="position: relative">
-      <el-button size="mini" class="viewJSONTree" @click="viewJSONTree">预览</el-button>
+      <el-button size="mini" class="viewJSONTree" @click="viewJSONTree">JSON</el-button>
       <el-button size="mini" class="shareApi" @click="shareApi">分享</el-button>
-      <el-button size="mini" class="saveApi" @click="saveApi">保存</el-button>
-      <el-tabs v-model="optionTabFirst" class="optionTab">
+      <span class="saveApi">自动保存模式</span>
+      <el-tabs v-model="optionTabFirst" class="optionTab" style="padding-top: 0px;">
         <el-tab-pane name="first">
           <span slot="label"><i class="el-icon-share" style="margin: 0 3px"></i>接口入参</span>
           <div class="optionsWrap">
             <div class="optionsHead">
-              <p style="width: 260px;">字段</p>
-              <p style="width: 30px;">类型</p>
-              <p style="width: 30px;">必传</p>
-              <p style="width: 210px;">案例</p>
-              <p style="width: 210px;">说明</p>
-              <p>最后修改</p>
-              <p>操作</p>
+              <p style="min-width: 260px;">字段</p>
+              <p style="min-width: 46px;">类型</p>
+              <p style="min-width: 46px;">必传</p>
+              <p style="min-width: 250px;">案例</p>
+              <p style="min-width: 210px;flex: 1;">说明</p>
+              <p style="min-width: 130px;">最后修改</p>
+              <p style="min-width: 90px;">操作</p>
             </div>
             <el-tree ref="optionsWrapMenuList" class="optionsTree"
                v-if="isLoadingTree"
@@ -42,7 +42,7 @@
                highlight-current
                :props="defaultProps"
                :optionsWrap-on-click-node="false"
-               :render-content="renderContent"
+               :render-content="renderContentIn"
                :default-optionsWraped-keys="defaultoptionsWrapKeys"
                @node-click="handleNodeClick"></el-tree>
             <div>
@@ -119,12 +119,12 @@
           <div class="optionsWrap">
             <div class="optionsHead">
               <p style="width: 260px;">字段</p>
-              <p style="width: 30px;">类型</p>
-              <p style="width: 30px;">必传</p>
-              <p style="width: 210px;">案例</p>
-              <p style="width: 210px;">说明</p>
-              <p>最后修改</p>
-              <p>操作</p>
+              <p style="width: 46px;">类型</p>
+              <p style="width: 46px;">必传</p>
+              <p style="width: 250px;">案例</p>
+              <p style="width: 210px;flex: 1;">说明</p>
+              <p style="width: 130px;">最后修改</p>
+              <p style="width: 90px;">操作</p>
             </div>
             <el-tree ref="optionsWrapMenuList" class="optionsTree"
                      v-if="isLoadingTree"
@@ -134,7 +134,7 @@
                      highlight-current
                      :props="defaultProps"
                      :optionsWrap-on-click-node="false"
-                     :render-content="renderContent"
+                     :render-content="renderContentOut"
                      :default-optionsWraped-keys="defaultoptionsWrapKeys"
                      @node-click="handleNodeClick"></el-tree>
             <div>
@@ -208,6 +208,19 @@
         </el-tab-pane>
         <el-tab-pane label="入参+出参" name="third">入参+出参</el-tab-pane>
       </el-tabs>
+      <el-button v-show="!markdownShow" size="mini" @click="markdownDiv()" style="margin: 20px;">编写接口说明?</el-button>
+      <el-button v-show="markdownShow" size="mini" @click="saveApi('yes')" style="position: absolute;right: 30px;margin-top: 5px;">保存描述</el-button>
+      <div class="editorContainer"  v-show="markdownShow">
+        <markdown
+          :mdValuesP="markD.mdValue"
+          :fullPageStatusP="false"
+          :editStatusP="true"
+          :previewStatusP="true"
+          :navStatusP="true"
+          :icoStatusP="true"
+          @childevent="childEventHandler"
+        ></markdown>
+      </div>
       <!--接口参数预览 -->
       <el-dialog
         top="10px"
@@ -225,11 +238,12 @@
 <script>
 import api from '../api/api';
 import apiOptionsTree from '@/components/apiOptionsTree'
-const apiData =  {
-  maxoptionsWrapId: 95,
-}
+import markdown from '@/components/markdown'
 export default {
   name: 'api',
+  components: {
+    markdown
+  },
   data(){
     return{
       projectId:'',
@@ -238,9 +252,10 @@ export default {
       apiType:"POST",
       apiServer:"192.168.2.10",
       optionTabFirst:"first",
-      maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id
-      non_maxoptionsWrapId: apiData.maxoptionsWrapId,//新增节点开始id(不更改)
+      non_maxoptionsWrapId: 96,//最开始节点id(不更改)
       isLoadingTree: false,//是否加载节点树
+      treeWrapIdIn: 96,//新增节点开始id
+      treeWrapIdOut: 96,//新增节点开始id
       treeDataIn: [],//入参节点树数据
       treeDataOut: [],//出参节点树数据
       viewJSON: false,
@@ -272,6 +287,11 @@ export default {
           {code:"",value:""}
         ]
 
+      },
+      markdownShow:false,
+      markDShow:false,
+      markD:{
+        mdValue:'##这里可以编写整体的接口描述，说明等，类似README.md 文件\n\n![weiew](http://e.weiew.net/images/logo.png)'
       }
     }
   },
@@ -287,10 +307,16 @@ export default {
           this.apiName = dto.name;
           if(dto.paramIn){
             this.treeDataIn = JSON.parse(dto.paramIn);
+            this.treeWrapIdIn = dto.paramMaxIdIn;
             this.viewJSONData = JSON.parse(dto.paramIn);
           }
           if(dto.paramOut){
             this.treeDataOut = JSON.parse(dto.paramOut);
+            this.treeWrapIdOut = dto.paramMaxIdOut;
+          }
+          if(dto.descriptionMD){
+            this.markD.mdValue = dto.descriptionMD;
+            this.markdownShow = true;
           }
         }else{
           this.$message({
@@ -313,14 +339,32 @@ export default {
       // console.log(d,n)
       //d.isEdit = false;//放弃编辑状态
     },
-    renderContent(h,{node,data,store}){//加载节点
+    renderContentIn(h,{node,data,store}){//加载节点
       let that = this;
       return h(apiOptionsTree,{
         props: {
           DATA: data,
           NODE: node,
           STORE: store,
-          maxoptionsWrapId: that.non_maxoptionsWrapId
+          maxoptionsWrapId: that.treeWrapIdIn,
+          saveApi: that.saveApi
+        },
+        on: {
+          nodeAdd: ((s,d,n) => that.handleAdd(s,d,n)),
+          nodeEdit: ((s,d,n) => that.handleEdit(s,d,n)),
+          nodeDel: ((s,d,n) => that.handleDelete(s,d,n))
+        }
+      });
+    },
+    renderContentOut(h,{node,data,store}){//加载节点
+      let that = this;
+      return h(apiOptionsTree,{
+        props: {
+          DATA: data,
+          NODE: node,
+          STORE: store,
+          maxoptionsWrapId: that.treeWrapIdOut,
+          saveApi: that.saveApi
         },
         on: {
           nodeAdd: ((s,d,n) => that.handleAdd(s,d,n)),
@@ -330,17 +374,25 @@ export default {
       });
     },
     handleAddTop(){
-      var newData = this.newApiKey;
-      newData.id = ++this.maxoptionsWrapId;
+      var newData = {
+        ...this.newApiKey
+      };
+      if(!newData.codeName){
+        this.$message.error("字段名称不能为空")
+        return
+      }
       newData.lastEditTime = new Date().toJSON();
       newData.isEdit = false;
       if(this.optionTabFirst == "first"){
+        newData.id = ++this.treeWrapIdIn;
         this.treeDataIn.push(newData);
       }else if(this.optionTabFirst == "second"){
+        newData.id = ++this.treeWrapIdOut;
         this.treeDataOut.push(newData);
       }else{
         return
       }
+      //清空输入框
       this.newApiKey ={
         codeName:"",
         codeType:"S",
@@ -348,12 +400,13 @@ export default {
         codeExample:"",
         codeTips:"",
         hasCodeValue:false,
+        isEdit:false,
         codeValue:[{code:"",value:""}]
       }
+      this.saveApi();
       this.$message("添加成功!")
     },
     handleAdd(s,d,n){//增加节点
-      console.log(s,d,n)
       if(n.level >=6){
         this.$message.error("最多只支持五级！")
         return false;
@@ -362,7 +415,7 @@ export default {
         this.$set(d, 'children', []);
       }
       const newChild = {
-        id: ++this.maxoptionsWrapId,
+        id: this.optionTabFirst == "first"? ++this.treeWrapIdIn:++treeWrapIdOut,
         codeName:"",
         codeExample:"",
         codeType:"",
@@ -377,6 +430,7 @@ export default {
       if(!n.expanded){
         n.expanded = true;
       }
+      this.saveApi();
     },
     handleEdit(s,d,n){//编辑节点
       console.log(s,d,n)
@@ -404,6 +458,7 @@ export default {
           let k = list.splice(_index,1);
           //console.log(_index,k)
           this.$message.success("删除成功！")
+          this.saveApi();
         }
         let isDel = () => {
           that.$confirm("是否删除此节点？","提示",{
@@ -477,7 +532,7 @@ export default {
         confirmButtonText: '确定'
       });
     },
-    saveApi () {
+    saveApi (msgType) {
       let postData = {
         id: this.apiId,
         type: this.apiType,
@@ -485,21 +540,47 @@ export default {
         name: this.apiName,
         paramIn: JSON.stringify(this.treeDataIn),
         paramOut: JSON.stringify(this.treeDataOut),
+        paramMaxIdIn: this.treeWrapIdIn,
+        paramMaxIdOut: this.treeWrapIdOut,
+        descriptionMD: this.markD.mdValue,
         editor: sessionStorage.getItem("account")
       }
       api.post('api/apiData/editApi')(postData).then((data) => {
         if(data.code == "200"){
-          this.$message({
-            message: '保存成功！',
-            type: 'success'
-          });
+          console.log("保存成功");
+          if(msgType== "yes"){
+            this.$message({
+              message: '保存成功！',
+              type: 'success'
+            });
+          }
         }else{
           this.$message({
-            message: data.msg || '添加失败',
+            message: data.msg || '保存失败',
             type: 'error'
           });
         }
       })
+    },
+    childEventHandler:function(res){
+      // res会传回一个data,包含属性mdValue和htmlValue，具体含义请自行翻译
+      this.markD=res;
+    },
+    markdownDiv (){
+      this.markdownShow = true;
+    },
+    getMdValueFn:function(){
+      this.markDShow=this.markD.mdValue;
+      this.dilogStatus=true;
+    },
+    getHtmlValueFn:function(){
+      this.markDShow=this.markD.htmlValue;
+      this.dilogStatus=true;
+
+    },
+    closeMaskFn:function(){
+      this.markDShow='';
+      this.dilogStatus=false;
     }
   },
   mounted (){
@@ -549,18 +630,25 @@ export default {
     white-space:normal;
   }
   .optionsHead{
-    color: #0095e0;
-    display: table;
-    background: #f1f1f1;
+    color: #3286dc;
+    display: flex;
+    border-bottom: 1px solid #acccec;
     border-collapse: collapse;
     width: 100%;
+    text-align: center;
+    padding: 5px 0;
+    background: #f1f1f1;
+    font-weight: bold;
   }
   .optionsHead>p{
-    display: table-cell;
-    border-right: 1px solid #dedede;
+    border-right: 1px dashed #bfbfbf;min-
     vertical-align: middle;
-    font-size: 12px;
-    line-height: 30px;
+    font-size: 14px;
+    margin:0;
+    line-height: 18px;
+  }
+  .optionsHead>p:last-child{
+    border: none;
   }
   .apiUrlInfo{
     font-size: 14px;
@@ -584,19 +672,20 @@ export default {
     position: absolute;
     right:100px;
     top:5px;
-    z-index: 100;
+    z-index: 10;
   }
   .shareApi{
     position: absolute;
-    right:160px;
+    right:170px;
     top:5px;
-    z-index: 100;
+    z-index: 10;
   }
   .saveApi{
     position: absolute;
-    right:40px;
-    top:5px;
-    z-index: 100;
+    right: 24px;
+    top: 10px;
+    z-index: 10;
+    font-size: 12px;
   }
   .breadcrumbApi{
     display: inline-block;
@@ -606,5 +695,11 @@ export default {
     margin-bottom: 2px;
     cursor: pointer;
     margin-right: 60px;
+  }
+  .editorContainer {
+    width: 98%;
+    height: 500px;
+    border: 1px solid #ddd;
+    margin: auto;
   }
 </style>

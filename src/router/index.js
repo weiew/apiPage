@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import mainWrap from '@/components/mainWrap'
+import dashboard  from '@/components/dashboard'
 import login from '@/components/login'
 import register from '@/components/register'
 import forget from '@/components/forget'
@@ -24,7 +25,8 @@ export default new Router({
       path: '/',
       component: mainWrap,
       children: [
-        { path: '/api/:project/:id', component: api, name: '接口' },
+        { path: '/dashboard', component: dashboard, name: '接口' },
+        { path: '/project/:project/:id', component: api, name: '接口' },
         { path: '/project/:id', component: project, name: '项目' },
         { path: '/myProject', component: myProject, name: '我的项目' }
       ]

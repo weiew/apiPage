@@ -95,11 +95,6 @@
                 v-model="DATA.codeTips"></el-input>
 		</span>
     <span class="lastEditTime">{{VTools.dateTimeFA(null,null,DATA.lastEditTime)}}</span>
-		<span class="tree-btn" v-show="!DATA.isEdit">
-			<i class="el-icon-plus" @click.stop="nodeAdd(STORE,DATA,NODE)"></i>
-			<i class="el-icon-edit" @click.stop="nodeEdit(STORE,DATA,NODE)"></i>
-			<i class="el-icon-delete" @click.stop="nodeDel(STORE,DATA,NODE)"></i>
-		</span>
 		<span class="tree-btn" v-show="DATA.isEdit">
 			<!--<i class="_cancel" @click.stop="nodeEditCancel(STORE,DATA,NODE)">取消</i>-->
 			<i class="_finish" @click.stop="nodeEditFinish(STORE,DATA,NODE)">完成</i>
@@ -287,7 +282,7 @@
   }
   .lastEditTime{
     position: absolute;
-    right: 100px;
+    right: 10px;
     font-size: 12px;
     color: #999999;
   }

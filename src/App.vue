@@ -35,6 +35,14 @@ export default {
     padding: 5px 10px;
     margin-bottom: 10px;
   }
+  .titleC{
+    text-align: center;
+    color: #ffffff;
+    background: #545c64;
+    padding: 5px 10px;
+    font-size: 16px;
+    border-radius: 10px 10px 0 0;
+  }
   .tree-view-item-key {
     color: #666;
   }

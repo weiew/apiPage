@@ -1,74 +1,52 @@
 <template>
-  <el-container id="mainWrapContainer">
-    <el-aside width="210px">
-    <img src="http://e.weiew.net/images/logo.png" style="margin-bottom:10px">
-
-      <el-menu
-        default-active="2"
-        class="el-aside-menu"
-        :router="true"
-        background-color="#545c64"
-        text-color="#fff"
-        active-text-color="#ffd04b">
-        <el-submenu index="1">
-          <template slot="title">
-            <i class="el-icon-tickets"></i>
-            <span>我的项目</span>
-          </template>
-          <div v-for="(item,key) in projectList">
-            <el-menu-item-group v-if="!item.child">
-              <el-menu-item :index="'/project/'+item.id">{{item.name}}</el-menu-item>
-            </el-menu-item-group>
-            <el-submenu :index="item.id" v-if="item.child">
-              <template slot="title">
-                <span>{{item.name}}</span>
-              </template>
-              <el-menu-item v-for="(itemChild,keyChild) in item.child" :index="'/project/'+itemChild.id">{{itemChild.name}}</el-menu-item>
-            </el-submenu>
-          </div>
-
-<!--          <el-submenu index="1-1">
-            <template slot="title">
-              <span>应收管理</span>
-            </template>
-            <el-menu-item index="/api/a0001">待处理流水</el-menu-item>
-            <el-menu-item index="/api/a0002">已处理流水</el-menu-item>
-          </el-submenu>
-          <el-submenu index="1-1">
-            <template slot="title">
-              <span>应收管理2</span>
-            </template>
-            <el-menu-item index="/api/a0001">待处理流水</el-menu-item>
-            <el-menu-item index="/api/a0002">已处理流水</el-menu-item>
-          </el-submenu>-->
-        </el-submenu>
-        <el-submenu index="2">
-          <template slot="title">
-            <i class="el-icon-share"></i>
-            <span>我的好友</span>
-          </template>
-          <el-submenu index="2-1">
-            <span slot="title">同事</span>
-            <el-menu-item index="/team/a0003">李里仁</el-menu-item>
-            <el-menu-item index="/team/a0004">赵山伟</el-menu-item>
-          </el-submenu>
-        </el-submenu>
-      </el-menu>
-    </el-aside>
+  <el-container>
+    <el-header>
+      <mainHead></mainHead>
+    </el-header>
     <el-container>
-      <mainHead :refreshProject="initProject"></mainHead>
-      <section class="content-container">
-        <div class="grid-content bg-purple-light">
-          <el-col :span="24" class="content-wrapper">
-            <transition name="fade" id="middleContainer" mode="out-in" >
-              <router-view></router-view>
-            </transition>
-          </el-col>
-        </div>
-      </section>
-      <el-footer style="display: none">
-        <p>Footer</p>
-      </el-footer>
+      <el-aside width="210px" style="position: fixed;">
+        <el-menu
+          :default-active='activeNav'
+          class="el-aside-menu"
+          :router="true"
+          background-color="#f7fafb"
+          text-color="#606978"
+          active-text-color="#ffd04b">
+          <el-submenu index="1">
+            <template slot="title">
+              <i class="el-icon-tickets" style="color: #000"></i>
+              <span>我的项目</span>
+            </template>
+            <div v-for="(item,key) in projectList">
+              <el-menu-item-group v-if="!item.child">
+                <el-menu-item :index="'/project/'+item.id">{{item.name}}</el-menu-item>
+              </el-menu-item-group>
+              <el-submenu :index="item.id" v-if="item.child">
+                <template slot="title">
+                  <span>{{item.name}}</span>
+                </template>
+                <el-menu-item v-for="(itemChild,keyChild) in item.child" :index="'/project/'+itemChild.id">{{itemChild.name}}</el-menu-item>
+              </el-submenu>
+            </div>
+          </el-submenu>
+
+        </el-menu>
+      </el-aside>
+      <el-container>
+        <el-main v-bind:style="{ 'height': mainHeight + 'px'}">
+          <div class="grid-content bg-purple-light">
+            <el-col :span="24" class="content-wrapper">
+              <transition name="fade" id="middleContainer" mode="out-in" >
+                <router-view>
+                </router-view>
+              </transition>
+            </el-col>
+          </div>
+        </el-main>
+<!--        <el-footer>
+          <p>Footer</p>
+        </el-footer>-->
+      </el-container>
     </el-container>
   </el-container>
 </template>
@@ -80,10 +58,16 @@ export default {
   name: 'mainWrap',
   data () {
     return {
-      projectList:[]
+      projectList:[],
+      activeNav: 'dashboard',
+      mainHeight:'',
+      msg: 'Welcome to Your Vue.js App'
     }
   },
   methods: {
+    getMainHeight (){
+      this.mainHeight = window.screen.availHeight-70;
+    },
     initProject(){
       let postData = {
         ownerId: sessionStorage.getItem("account")
@@ -100,61 +84,77 @@ export default {
 
     }
   },
+  mounted() {
+    let that = this;
+    that.getMainHeight();
+    window.onresize = that.getMainHeight;
+    this.activeNav = this.$route.path.match(/\/[^\/]*\/([^\/]*)/)[0];
+  },
   created() {
     if(!sessionStorage.getItem("account")){
       this.$router.push({path: '/login'});
+    }else if(location.hash == "#/"){
+      this.$router.push({path: '/dashboard'});
     }
     this.initProject();
   }
 }
 </script>
-
+<style type="text/scss">
+  .el-aside-menu li.el-menu-item{
+    width: 80%;
+    margin: auto;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    height: 40px;
+    line-height: 40px;
+  }
+  .el-aside-menu li.el-menu-item.is-active{
+    background: #24292e !important;
+    color: #fff !important;
+    box-shadow: 2px 2px 2px #ccc;
+  }
+  .el-aside-menu .el-submenu__title{
+    background: #ededed !important;
+    color: #24292e !important;
+  }
+  .el-aside-menu .el-menu-item-group__title{
+    padding: 0;
+  }
+</style>
 <style lang="scss" type="text/scss">
-  #mainWrapContainer{
+  .el-header{
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 10;
+  }
+  .el-aside {
+    text-align: left;
+    background: #f7fafb;
+    box-shadow: 2px 2px 2px #eee;
     position: absolute;
-    top: 0px;
-    bottom: 0px;
-    width: 100%;
-  }
-  #middleContainer{
-    padding-bottom: 60px;
-  }
-  .el-menu--horizontal>.el-submenu .el-submenu__title{
-    height: 30px !important;
-    line-height: 30px !important;
+    z-index: 8;
+    top: 60px;
+    padding-top: 20px;
+    bottom: 0;
   }
   .el-aside-menu{
     border: none;
   }
-  .el-aside {
-    text-align: left;
-    background: #545c64;
-    overflow: hidden;
+  .el-aside-menu a{
+    color: #606978;
+    text-decoration: none;
   }
-  .el-main {
-    background-color: #E9EEF3;
-    color: #333;
-    text-align: center;
-    line-height: 160px;
-  }
-
-  body > .el-container {
-    margin-bottom: 40px;
-  }
-
-  .el-container:nth-child(5) .el-aside,
-  .el-container:nth-child(6) .el-aside {
-    line-height: 260px;
-  }
-
-  .el-container:nth-child(7) .el-aside {
-    line-height: 320px;
+  .el-main{
+    padding: 70px 10px 10px 220px;
+    background: #ededed;
   }
   .el-footer{
     position: fixed;
     bottom: 0;
     width: 100%;
     padding: 0;
-    background: #f1f1f1;
+    background: #f7fafb;
   }
 </style>

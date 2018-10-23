@@ -1,12 +1,16 @@
 <template>
-  <div style="text-align: left;padding: 5px 20px; font-size: 12px">
+  <div style="text-align: left;padding: 5px 20px; font-size: 12px;background: #fff">
     <el-row :getter="24" type="flex" align="top">
-      <el-col :span="20">
+      <el-col :span="24">
         <div class="projectInfo">
-          <p>项目名称: <span>{{projectInfo.name}}</span></p>
-          <p>项目描述: <span>{{projectInfo.descript}}</span></p>
+          <p>项目名称:
+            <el-input v-model="projectInfo.name" size="mini" @change="projectSave" style="width: 100px;"></el-input>
+          </p>
+          <p>项目描述:
+            <el-input v-model="projectInfo.descript" size="mini" @change="projectSave" style="width: 100px;"></el-input>
+          </p>
           <p>创建者: <span>{{projectInfo.ownerId}}</span></p>
-          <p>创建时间: <span>{{projectInfo.createTime}}</span></p>
+          <p>创建时间: <span>{{VTools.dateTimeFA(null,null,projectInfo.createTime)}}</span></p>
           <p v-show="projectInfo.membersNo">成员人数: <span>{{projectInfo.membersNo}}</span></p>
         </div>
         <div class="titleA">接口列表：
@@ -38,7 +42,7 @@
 <!--      <el-col :span="10" v-show="apiDetailShow">
         <tree-view :data="apiDetailIn" :options="{maxDepth: 3}"></tree-view>
       </el-col>-->
-      <el-col :span="4">
+<!--      <el-col :span="4">
         <div class="titleB">成员</div>
         <ul class="memberUl">
           <li v-for="item in memberList">
@@ -46,9 +50,21 @@
             <span>{{item.name}}</span>
           </li>
         </ul>
-      </el-col>
+      </el-col>-->
     </el-row>
-
+    <el-button v-show="!markdownShow" size="mini" @click="markdownDiv()" style="margin: 20px;">编写项目描述?</el-button>
+    <el-button v-show="markdownShow" size="mini" @click="projectSave()" style="position: absolute;right: 50px;margin-top: 24px;">保存描述</el-button>
+    <div class="editorContainer"  v-show="markdownShow">
+      <markdown
+        :mdValuesP="markD.mdValue"
+        :fullPageStatusP="false"
+        :editStatusP="true"
+        :previewStatusP="true"
+        :navStatusP="true"
+        :icoStatusP="true"
+        @childevent="childEventHandler"
+      ></markdown>
+    </div>
     <!--新增接口 -->
     <el-dialog
       title="新增接口"
@@ -113,8 +129,12 @@
 
 <script>
   import api from '../api/api';
+  import markdown from '@/components/markdown'
 export default {
   name: 'project',
+  components: {
+    markdown
+  },
   data(){
     return{
       projectId:'',
@@ -144,6 +164,11 @@ export default {
         name: [{required: true, message: '请输入接口名称', trigger: 'blur'}],
         address: [{required: true, message: '请输入接口地址', trigger: 'blur'}],
       },
+      markdownShow:false,
+      markDShow:false,
+      markD:{
+        mdValue:''
+      }
     }
   },
   methods: {
@@ -152,6 +177,13 @@ export default {
       api.post('api/project/projectInfo')({projectId: this.projectId}).then((data) => {
         if(data.code == "200"){
           this.projectInfo = data.projectInfo;
+          if(data.projectInfo.descriptionMD){
+            this.markD.mdValue = this.projectInfo.descriptionMD;
+            this.markdownShow = true;
+          }else{
+            this.markD.mdValue = "##这里可以编写整体的接口描述，说明等，类似README.md 文件\n\n![weiew](http://e.weiew.net/images/logo.png)";
+            this.markdownShow = false;
+          }
           this.apiList = data.apiList;
         }else{
           this.$message({
@@ -166,11 +198,30 @@ export default {
         confirmButtonText: '确定'
       });
     },
+    projectSave(){
+      let postData = {
+        editor: sessionStorage.getItem("account"),
+        id: this.projectId,
+        name: this.projectInfo.name,
+        descript: this.projectInfo.descript,
+        descriptionMD: this.markD.mdValue
+      }
+      api.post('api/project/editProject')(postData).then((data) => {
+        if(data.code == "200"){
+          this.$message("保存成功");
+        }else{
+          this.$message({
+            message: data.msg || '保存失败',
+            type: 'error'
+          });
+        }
+      })
+    },
     newApi (){
       this.newApiVisible = true;
     },
     closeNewApi (){
-      this.newApiVisible = true;
+      this.newApiVisible = false;
     },
     addNewApi (){
       this.$refs.newApiForm.validate((valid) => {
@@ -257,11 +308,31 @@ export default {
       }
     },
     toApi (row){
-      this.$router.push({path: '/api/'+this.projectId+'/'+row.id});
+      this.$router.push({path: '/project/'+this.projectId+'/'+row.id});
     },
     deleteApi (){
 
     },
+    childEventHandler:function(res){
+      // res会传回一个data,包含属性mdValue和htmlValue，具体含义请自行翻译
+      this.markD=res;
+    },
+    markdownDiv (){
+      this.markdownShow = true;
+    },
+    getMdValueFn:function(){
+      this.markDShow=this.markD.mdValue;
+      this.dilogStatus=true;
+    },
+    getHtmlValueFn:function(){
+      this.markDShow=this.markD.htmlValue;
+      this.dilogStatus=true;
+
+    },
+    closeMaskFn:function(){
+      this.markDShow='';
+      this.dilogStatus=false;
+    }
   },
   mounted(){
   },
@@ -310,5 +381,11 @@ export default {
   .memberUl li p img{
     width: 100%;
     height: 100%;
+  }
+  .editorContainer {
+    width: 98%;
+    height: 500px;
+    border: 1px solid #ddd;
+    margin: 20px auto;
   }
 </style>
