@@ -88,7 +88,10 @@ export default {
     let that = this;
     that.getMainHeight();
     window.onresize = that.getMainHeight;
-    this.activeNav = this.$route.path.match(/\/[^\/]*\/([^\/]*)/)[0];
+    let routeMatch = this.$route.path.match(/\/[^\/]*\/([^\/]*)/);
+    if(routeMatch){
+      this.activeNav = routeMatch[0];
+    }
   },
   created() {
     if(!sessionStorage.getItem("account")){

@@ -1,13 +1,12 @@
 <template>
   <div class="loginBg">
+    <span class="versionSpan">V~0·0·9</span>
     <canvas id="bgCanvas"></canvas>
     <div class="login">
       <img class="loginLogo" src="http://e.weiew.net/images/logo500.png">
       <div class="title">
-        <h2>www.weiew.net</h2>
         <h3>登录</h3>
       </div>
-      <span class="versionSpan">V~0·0·9</span>
       <el-form ref="loginForm" :model="loginForm" status-icon :rules="loginRules" label-width="0" class="loginForm">
         <el-form-item label="" prop="account">
           <el-input v-model="loginForm.account" prefix-icon="el-icon-message" placeholder="请输入用户名/邮箱地址"></el-input>
@@ -317,7 +316,7 @@ export default {
             if(data.code == "200"){
               sessionStorage.setItem("token",data.dto.token);
               sessionStorage.setItem("account",this.loginForm.account);
-              api.post('api/user/userInfoByToken')({account:postData.account}).then((dataA) => {
+              api.post('api/user/userInfoByToken')({loginId:data.dto.loginId}).then((dataA) => {
                 if(dataA.code == "200"){
                   _this.setToken({token: data.dto.token});
                   _this.saveUserInfo(dataA.dto);
@@ -400,25 +399,26 @@ a {
   position: absolute;
   top: 30%;
   left: 50%;
-  width: 450px;
-  margin-left: -225px;
+  width: 500px;
+  margin-left: -250px;
   background: #ffffff;
   opacity: 0.95;
+  border-radius: 20px;
 }
 .loginLogo{
   position: absolute;
   top: 0px;
   height: 60px;
-  right: -100px;
+  right: 0px;
 }
 .login .title{
   background: #24292e;
   height: 60px;
-  width: 650px;
-  margin-left: -100px;
+  margin-bottom: 60px;
+  width: 100%;
 }
 .loginForm{
-  margin: 40px auto 40px;
+  margin: 60px auto 60px;
   width: 80%;
 }
 .login h2{
@@ -451,11 +451,13 @@ a {
   display: inline-block;
   height: 100px;
   position: absolute;
-  right: -80px;
+  right: 0px;
   text-align: center;
   padding: 12px 1px 10px;
   word-wrap: break-word;
   font-size: 12px;
+  top: 50%;
+  margin-top: -100px;
 }
 .forget{
   font-size: 12px;
